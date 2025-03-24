@@ -1,0 +1,55 @@
+{
+  "shows": [
+    {
+      "showID": 1,
+      "date": 45702,
+      "venue": "Warehouse On Watts",
+      "bands": [
+        "Dave P.",
+        "Desire",
+        "Johnny Jewel",
+        "Elena Colombi",
+        "Jewelssea",
+        "Lechuga Zafiro",
+        "Ma Sha"
+      ]
+    },
+    {
+      "showID": 2,
+      "date": 45632,
+      "venue": "Warehouse On Watts",
+      "bands": [
+        "Optimo",
+        "Pearson Sound",
+        "Analog Soul",
+        "X3Butterfly",
+        "Zillas On Acid",
+        "Merloh"
+      ]
+    },
+    {
+      "showID": 3,
+      "date": 45737,
+      "venue": "Ulana's",
+      "bands": [
+        "Martyn Bootyspoon",
+        "Lorboo",
+        "Shugazi",
+        "Jewelssea",
+        "Museum Level",
+        "Solid State Eden"
+      ]
+    },
+    {
+      "showID": 4,
+      "date": 45597,
+      "venue": "Ukie Club",
+      "bands": [
+        "Kassie Krut",
+        "Shugazi",
+        "Bearcat",
+        "Bass Down Low"
+      ]
+    }
+  ]
+}
