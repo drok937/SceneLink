@@ -44,41 +44,44 @@ function populateShows(obj) {
 
 
 //---------------------------------Generate Direct Pairings-------------------------------------
-function generatePairings(obj) {
-    const showList = obj.shows;
-    const allPairings = [];
+function generatePairings(obj) { 
+    const showList = obj.shows; //create a list of every show
+    const allPairings = {}; //build an empty set that will hold the pairings
 
-    for (const show of showList) { //do the following to each show in the list of shows
-        const lineup = show.bands; //defines lineup from the json file
+    for (const show of showList) {  //for each individual show in the list of shows
+        const lineup = show.bands; //build an item that holds each band that played that show
         
-        for (let i = 0; i < lineup.length; i++) { 
-            for (let j = i + 1; j < lineup.length; j++) {
-               
-                const sortedPair = [lineup[i], lineup[j]].sort();// Sort the two bands alphabetically 
+        for (let i = 0; i < lineup.length; i++) { //itterate through each band and perform the following actions
+            const artist = lineup[i]; //perform the function on band i
 
-                // Create the pairing string with the sorted bands
-                const pairing = `${sortedPair[0]} & ${sortedPair[1]}`;
-                
-                //If the pairing already exists append with number of times
-                if (!allPairings.includes(pairing)) {
-                    allPairings.push(pairing); // Avoid duplicates
-                } else {
-                    let k = 1
-                    k ++ ;
-                    allPairings[i] += ` x ${k};`
-               }
+            if (!allPairings[artist]) { //if the artist does not already have a sub set in the pairings list
+                allPairings[artist] = {}; //then create a new set that will hold all of that artists pairings
+            }
+
+            for (let j = i + 1; j < lineup.length; j++) {  //itterate through the bands on the lineup
+                const otherArtist = lineup[j]; //define other artist as each other band on the lineup
+
+                // Ensure the otherArtist is also initialized
+                if (!allPairings[otherArtist]) {  //if there is not already a subset for the other artist
+                    allPairings[otherArtist] = {}; //then build a sub set for them as well
+                }
+
+                // Update both directions
+                allPairings[artist][otherArtist] = (allPairings[artist][otherArtist] || 0) + 1; //if there is already a value for the pairing add 1 to it. If the pairing doesn't exist yet, set the value as 0, then add 1
+                allPairings[otherArtist][artist] = (allPairings[otherArtist][artist] || 0) + 1; // do the same thing in reverse
             }
         }
     }
-    allPairings.sort();
-return allPairings;
+    return allPairings;
+    
 }
+
 
 //---------------------------------Generate Secondary Pairings-------------------------------------
 
 /*
 function generateSecondarys (allPairings) {
-    const secondaries = [];
+    const secondaries = {};
 
     for (const pairing of allPairings) {
 
@@ -93,28 +96,29 @@ function generateSecondarys (allPairings) {
 
 //---------------------------------Populate Pairings-------------------------------------
 function populatePairings(allPairings) {
-    const section = document.querySelector('section');
+    const pairingsSection = document.createElement('section');
+    pairingsSection.innerHTML = "<h2>Artist Pairings</h2>";
 
-    //----------------------------------Create a section for all band pairings-------------------------------------
-    const pairingsSection = document.createElement('ul');
-    pairingsSection.id = 'pairings-section'; // Optional: Add an ID for styling if needed
-    section.appendChild(pairingsSection);
+    for (const artist in allPairings) {
+        const artistHeading = document.createElement("h3");
+        artistHeading.textContent = artist;
 
-    const pairingsHeader = document.createElement('h2');
-    pairingsHeader.textContent = 'All Band Pairings';
-    pairingsSection.appendChild(pairingsHeader);
+        const artistList = document.createElement("ul");
 
-    const pairingsList = document.createElement('ul');
-    pairingsList.id = 'pairings-list'; // Optional: Add an ID for styling if needed
-    pairingsSection.appendChild(pairingsList);
+        // Corrected: Iterate over the entries in the object
+        for (const [otherArtist, count] of Object.entries(allPairings[artist])) {
+            const listItem = document.createElement("li");
+            listItem.textContent = `${otherArtist} (${count} times)`;
+            artistList.appendChild(listItem);
+        }
 
-    //----------------------------------Add all pairings to the list-------------------------------------
-    for (const pairing of allPairings) {
-        const pairingItem = document.createElement("li");
-        pairingItem.textContent = pairing;
-        pairingsList.appendChild(pairingItem);
+        pairingsSection.appendChild(artistHeading);
+        pairingsSection.appendChild(artistList);
     }
+
+    document.body.appendChild(pairingsSection);
 }
+
 
 // Call the populate function
 populate();
