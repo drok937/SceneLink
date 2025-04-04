@@ -1,3 +1,17 @@
+class Connection {
+    constructor(band1, band2, strength, isDirect) {
+        this.band1 = band1;         // The first band in the connection
+        this.band2 = band2;         // The second band in the connection
+        this.strength = strength;   // How many times they've played together
+        this.isDirect = isDirect;   // Whether this is a direct (true) or secondary (false) connection
+    }
+
+    display() {
+        // Code to visually represent the connection (e.g., draw a line in p5.js)
+    }
+}
+
+
 //Data importing and printing protocol taken from here:https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/JSON
 // Loop functions for generating pairings were assisted by Chat GPT
 
@@ -85,7 +99,45 @@ function generateSecondaryConnections(allPairings) {
     return secondaryConnections;
 }
 
-//-----------------------------Print direct band pairings to webpage-------------------------------
+
+//---------------------------Modify data to work with P5---------------------------
+
+let bands = {};
+let connections = [];
+
+//for each band that is listed in the pairings make a node
+function setupDataVis(allPairings, secondaryConnections) {
+    console.log("Setting up data visualization...");
+
+    // Debug: Check if input data exists
+    console.log("All Pairings:", allPairings);
+    console.log("Secondary Connections:", secondaryConnections);
+
+    for (const band in allPairings) {
+        bands[band] = new BandNode(band)
+        console.log(`Created BandNode: ${band}`);
+    }
+       // Debug: Confirm all band nodes are created
+    console.log("Bands object after creation:", bands);
+    //for each band go through and make a direct connection with the other bands on the bill
+    for (const band in allPairings) {
+        for (const otherBand in allPairings[band]) {
+            connections.push(new Connection(bands[band], bands[otherBand], allPairings[band][otherband], true));
+        }
+    }
+
+    //create secondary connections
+    for (const band in secondaryConnections) {
+        for (const otherBand in secondaryConnections[band]) {
+            connections.push(new Connection(bands[band], bands[otherBand], secondaryConnections[band][partner], false));
+        }
+    }
+
+}
+
+
+
+//-----------------------------Print band pairings to webpage-------------------------------
 function populatePairings(allPairings, secondaryConnections) {
     const pairingsSection = document.createElement('section');
     pairingsSection.innerHTML = "<h2>Artist Pairings</h2>";
