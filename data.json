@@ -1,55 +1,102 @@
 {
-  "shows": [
-    {
-      "showID": 1,
-      "date": 45702,
-      "venue": "Warehouse On Watts",
-      "bands": [
-        "Dave P.",
-        "Desire",
-        "Johnny Jewel",
-        "Elena Colombi",
-        "Jewelssea",
-        "Lechuga Zafiro",
-        "Ma Sha"
-      ]
-    },
-    {
-      "showID": 2,
-      "date": 45632,
-      "venue": "Warehouse On Watts",
-      "bands": [
-        "Optimo",
-        "Pearson Sound",
-        "Analog Soul",
-        "X3Butterfly",
-        "Zillas On Acid",
-        "Merloh"
-      ]
-    },
-    {
-      "showID": 3,
-      "date": 45737,
-      "venue": "Ulana's",
-      "bands": [
-        "Martyn Bootyspoon",
-        "Lorboo",
-        "Shugazi",
-        "Jewelssea",
-        "Museum Level",
-        "Solid State Eden"
-      ]
-    },
-    {
-      "showID": 4,
-      "date": 45597,
-      "venue": "Ukie Club",
-      "bands": [
-        "Kassie Krut",
-        "Shugazi",
-        "Bearcat",
-        "Bass Down Low"
-      ]
-    }
-  ]
+  "shows": 
+    [
+      {
+        "showID": 1,
+        "date": "2/14/25",
+        "venue": "Warehouse On Watts",
+        "bands": [
+          "Dave P.",
+          "Desire",
+          "Johnny Jewel",
+          "Elena Colombi",
+          "Jewelssea",
+          "Lechuga Zafiro",
+          "Ma Sha"
+        ]
+      },
+      {
+        "showID": 2,
+        "date": "12/6/24",
+        "venue": "Warehouse On Watts",
+        "bands": [
+          "Optimo",
+          "Pearson Sound",
+          "Analog Soul",
+          "X3Butterfly",
+          "Zillas On Acid",
+          "Merloh"
+        ]
+      },
+      {
+        "showID": 3,
+        "date": "3/21/25",
+        "venue": "Ulana's",
+        "bands": [
+          "Martyn Bootyspoon",
+          "Lorboo",
+          "Shugazi",
+          "Jewelssea",
+          "Museum Level",
+          "Solid State Eden"
+        ]
+      },
+      {
+        "showID": 4,
+        "date": "11/1/24",
+        "venue": "Ukie Club",
+        "bands": [
+          "Kassie Krut",
+          "Shugazi",
+          "Bearcat",
+          "Bass Down Low"
+        ]
+      },
+      {
+        "showID": 5,
+        "date": "3/30/25",
+        "venue": "Say No More",
+        "bands": [
+          "Dave P.",
+          "Yosuke DJ",
+          "Abby J",
+          "Sweater"
+        ]
+      },
+      {
+        "showID": 6,
+        "date": "3/7/25",
+        "venue": "Spirit",
+        "bands": [
+          "Dave P.",
+          "Ron Mist",
+          "Repeat Offender"
+        ]
+      },
+      {
+        "showID": 7,
+        "date": "2/9/24",
+        "venue": "Warehouse on Watts",
+        "bands": [
+          "Dave P.",
+          "Nick Leon",
+          "Identified Patient",
+          "QRTR",
+          "Ayesha",
+          "Jewelssea"
+        ]
+      },
+      {
+        "showID": 8,
+        "date": "1/18/25",
+        "venue": "Ulana's",
+        "bands": [
+          "Shugazi",
+          "Jewelssea",
+          "Merloh",
+          "Full Moon Fool"
+        ]
+      }
+    ]
+    
 }
