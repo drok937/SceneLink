@@ -2,7 +2,7 @@
 //Data importing and printing protocol taken from here:https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/JSON
 // Loop functions for generating pairings were assisted by Chat GPT
 
-// Define allPairings and secondaryConnections as global variables
+//-------------------------- Define allPairings and secondaryConnections as global variables
 let allPairings;
 let secondaryConnections;
 
@@ -23,7 +23,7 @@ async function populate() {
         } else {
             console.error("setupDataVis is not defined yet!");
         }
-        
+
     } catch (error) {
         console.error("Error loading data:", error);
     }
@@ -120,7 +120,7 @@ function populatePairings(allPairings, secondaryConnections) {
             directList.appendChild(listItem);
         }
 
-        // *NDIRECT CONNECTIONS
+        // INDIRECT CONNECTIONS
         const indirectHeader = document.createElement("h4");
         indirectHeader.textContent = "Indirect Connections:";
         const indirectList = document.createElement("ul");
@@ -133,7 +133,7 @@ function populatePairings(allPairings, secondaryConnections) {
             }
         } else {
             const noConnections = document.createElement("li");
-            noConnections.textContent = "❌ No secondary connections";
+            noConnections.textContent = "No secondary connections";
             indirectList.appendChild(noConnections);
         }
 

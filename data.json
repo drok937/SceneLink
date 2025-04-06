@@ -96,6 +96,49 @@
           "Merloh",
           "Full Moon Fool"
         ]
+      },
+      {
+        "showID": 9,
+        "date": "2/22/22",
+        "venue": "La Chinesca",
+        "bands": [
+          "Val Fleury",
+          "DJ Sylo",
+          "Shugazi",
+          "YOLO ONO"
+        ]
+      },
+      {
+        "showID": 10,
+        "date": "3/15/25",
+        "venue": "Upstairs at the 700",
+        "bands": [
+          "Shugazi",
+          "Sweater",
+          "JFK"
+        ]
+      },
+      {
+        "showID": 11,
+        "date": "1/10/25",
+        "venue": "Icebox Project Space",
+        "bands": [
+          "Phreakwency",
+          "low iron",
+          "Nail Salon(2)",
+          "ghost.slut"
+        ]
+      },
+      {
+        "showID": 12,
+        "date": "12/21/25",
+        "venue": "Upstairs at the 700",
+        "bands": [
+          "Phreakwency",
+          "Nail Salon(2)",
+          "low iron",
+          "Melodic"
+        ]
       }
     ]
     
