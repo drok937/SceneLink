@@ -1,74 +1,79 @@
 let bands = [];
 let maxShows = 1;
+let maxConnections = 1; // Move maxConnections to global scope
 
-//----------------------------------Setup-----------------------
-function setupDataVis(allPairings, secondaryConnections) { //Not currently using secondary connections, add later
+class BandNode {
+    constructor(name, numShows) {
+        this.name = name;
+        this.x = random(100, windowWidth - 50);
+        this.y = random(100, windowHeight - 50);
+        this.size = map(numShows, 1, 10, 10, 50);
+    }
+
+    drawConnections() {
+        for (let otherBand in allPairings[this.name]) {
+            if (allPairings[this.name][otherBand] > 0) {
+                let otherBandNode = bands.find(b => b.name === otherBand);
+                if (otherBandNode) {
+                    stroke(255, 150);
+                    strokeWeight(map(allPairings[this.name][otherBand], 1, maxConnections, 1, 6, true));
+                    line(this.x, this.y, otherBandNode.x, otherBandNode.y);
+                }
+            }
+        }
+    }
+
+    display() {
+        fill(0, 200, 0);
+        ellipse(this.x, this.y, this.size * 0.5, this.size * 0.5);
+
+        let textSizeScaled = map(Object.keys(allPairings[this.name]).length, 1, maxShows, 10, 25);
+        textAlign(CENTER);
+        fill(255);
+        textSize(textSizeScaled);
+        text(this.name, this.x, this.y - 15);
+    }
+}
+
+//------------------------ Setup -----------------------------
+function setupDataVis(allPairings, secondaryConnections) {
     console.log("Data visualization initialized.");
     let cnv = createCanvas(windowWidth, windowHeight);
-    cnv.parent("canvas-container"); // Attach canvas to the div
+    cnv.parent("canvas-container");
 
-     // Find the maximum number of shows that any one artist has played
-        for (let band in allPairings) {
+    for (let band in allPairings) {
         maxShows = max(maxShows, Object.keys(allPairings[band]).length);
     }
 
-    // Convert the band names into an array of objects with random positions
-    bands = Object.keys(allPairings).map((band) => {
-        const numShows = Object.keys(allPairings[band]).length;
-        return {
-            name: band,
-            x: random(100, windowWidth - 50),  // Random x position
-            y: random(100, windowHeight - 50), // Random y position
-            size: map(numShows, 1, 10, 10, 50) // Scale the size based on the number of shows
-        };
-    });
-}
-//---------------------------------Draw---------------------------------------
-function draw() {
-
-
-   // Find the highest pairing count dynamically
-    let maxConnections = 1; // Default minimum
+    // Calculate maxConnections **before drawing**
+    maxConnections = 1;
     for (let band in allPairings) {
         for (let otherBand in allPairings[band]) {
-        maxConnections = max(maxConnections, allPairings[band][otherBand]);
+            maxConnections = max(maxConnections, allPairings[band][otherBand]);
         }
     }
 
-    background(0); // Clear the background each frame
+    bands = Object.keys(allPairings).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
 
+    console.log(bands);
+    console.log(bands[0] instanceof BandNode); // Should return true
+}
 
-//-----------------------------------Draw line connections-------------------------
-    // loop function that goes through each pairing of bands
+//------------------------ Draw -----------------------------
+function draw() {
+    background(0);
+
+    // Draw connections
     for (let band of bands) {
-
-        for (let otherBand in allPairings[band.name]) { //look at connected band
-            if (allPairings[band.name][otherBand] > 0) { //if they have played together before do following
-                let otherBandPosition = bands.find(b => b.name === otherBand); //find the band in the stored connections
-                //draw the line
-                stroke(255, 150);
-                strokeWeight(map(allPairings[band.name][otherBand], 1, maxConnections, 1, 6, true)); 
-                line(band.x, band.y, otherBandPosition.x, otherBandPosition.y);
-            }
+        if (band instanceof BandNode) {
+            band.drawConnections();
         }
-
     }
 
- //--------------------------------Create band nodes + labels------------------------
-    fill(255); 
-    noStroke();
+    // Draw band nodes
     for (let band of bands) {
-        fill(0, 200, 0);
-        ellipse(band.x, band.y, band.size * .5, band.size * .5); // Draw dot
-
-        // Dynamically scale the text size based on the number of shows
-        let textSizeScaled = map(Object.keys(allPairings[band.name]).length, 1, maxShows, 10, 25); // Scale text size
-
-        textAlign(CENTER);
-        textAlign(CENTER);
-        fill(255);
-        textSize(textSizeScaled); 
-        text(band.name, band.x, band.y - 15); // Label the dots
-       
+        if (band instanceof BandNode) {
+            band.display();
+        }
     }
 }
