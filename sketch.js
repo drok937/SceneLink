@@ -23,7 +23,7 @@ class BandNode {
                     let otherBandNode = bands.find(b => b.name === otherBand);
                     if (otherBandNode) {
                         stroke(255, 0, 0, 50); // Red color
-                        strokeWeight(map(allPairings[this.name][otherBand], 1, maxSConnections, 1, 6, true)); // Set a constant stroke weight for secondary connections
+                        strokeWeight(map(secondaryConnections[this.name][otherBand], 1, maxSConnections, .5, 4, true)); 
                         line(this.x, this.y, otherBandNode.x, otherBandNode.y);
                     }
                 }
@@ -37,7 +37,7 @@ class BandNode {
             if (allPairings[this.name][otherBand] > 0) {
                 let otherBandNode = bands.find(b => b.name === otherBand);
                 if (otherBandNode) {
-                    stroke(255, 150); // White with some transparency
+                    stroke(255, 200); // White with some transparency
                     strokeWeight(map(allPairings[this.name][otherBand], 1, maxPConnections, 1, 6, true));
                     line(this.x, this.y, otherBandNode.x, otherBandNode.y);
                 }
@@ -48,11 +48,12 @@ class BandNode {
     
 
     display() {
-        noStroke(); // Prevent red stroke from affecting nodes and text
+        noStroke();
         fill(0, 200, 0);
         ellipse(this.x, this.y, this.size * 0.5, this.size * 0.5);
 
         let textSizeScaled = map(Object.keys(allPairings[this.name]).length, 1, maxShows, 10, 25);
+        stroke(.50);
         textAlign(CENTER);
         fill(255);
         textSize(textSizeScaled);
