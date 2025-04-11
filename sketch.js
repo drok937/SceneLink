@@ -48,7 +48,71 @@ class BandNode {
         }
     }
     
+    applyForces() {
+        let forceX = 0;
+        let forceY = 0;
         
+        let baseAttractionStrength = .07;  // Base attraction strength
+        let baseRepulsionStrength = 500;    // Base repulsion strength 
+        let minDistance = 250;               // Minimum distance before repulsion kicks in
+        let spreadStrength = 0.002;         // Outward spread force to prevent central clustering
+        let bufferDistance = 700            //buffer around each node
+
+        for (let otherBand of bands) {
+            if (otherBand === this) continue; // Skip self
+            //calculate distance between nodes
+            let dx = otherBand.x - this.x;
+            let dy = otherBand.y - this.y;
+            let distance = sqrt(dx * dx + dy * dy);
+
+            //avoid dividing by 0
+            if (distance < 1) distance = 1; // Avoid division by zero
+            
+            //sets variable for how many times band has played together
+            let connectionStrength = allPairings[this.name]?.[otherBand.name]  || 0;
+            let isConnected = connectionStrength > 0;
+    
+            if (isConnected) {
+                // Scale attraction based on primary connection strength
+                let attractionStrength = baseAttractionStrength * connectionStrength;
+                let attractionForce = attractionStrength * (distance - minDistance);
+                forceX += attractionForce * (dx / distance);
+                forceY += attractionForce * (dy / distance);
+            } 
+
+            if (distance < bufferDistance) {
+                let repulsionForce = baseRepulsionStrength / (distance * distance);
+                    let overlapFactor = (bufferDistance - distance) / bufferDistance;
+                    repulsionForce *= 1 + overlapFactor * 2
+                    
+        
+
+            
+            // Apply repulsion force if too close
+            //if (distance < 250) {  
+               // let repulsionForce = baseRepulsionStrength / (distance * distance);
+                forceX -= repulsionForce * (dx / distance);
+                forceY -= repulsionForce * (dy / distance);
+            }
+        }
+    
+        // Outward spread force to counteract central pooling
+        let centerX = windowWidth / 2;
+        let centerY = windowHeight / 2;
+        let spreadX = this.x - centerX;
+        let spreadY = this.y - centerY;
+        forceX += spreadX * spreadStrength;
+        forceY += spreadY * spreadStrength;
+    
+        // Apply force to position
+
+        this.x += forceX;
+        this.y += forceY;
+    
+        // Constrain within window bounds with a small margin
+        this.x = constrain(this.x, 100, windowWidth - 100);
+        this.y = constrain(this.y, 100, windowHeight - 100);
+    } 
 
     display() {
         noStroke();
@@ -133,6 +197,7 @@ function draw() {
      for (let band of bands) {
     band.applyForces();
     }
+
     // Draw connections
     for (let band of bands) {
         if (band instanceof BandNode) {
