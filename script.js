@@ -1,4 +1,3 @@
-
 //Data importing and printing protocol taken from here:https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/JSON
 // Loop functions for generating pairings were assisted by Chat GPT
 
