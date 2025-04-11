@@ -1,3 +1,30 @@
+body {
+    background-color: rgb(6, 0, 0);
+    color: blue;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevent scrolling */
+}
+
+#canvas-container {
+    position: absolute;
+    top: 30px; /* Adjust based on your h1 height */
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 50px); /* Ensure it fits within the viewport */
+    overflow: hidden; /* Prevent scrollbars */
+}
+
+  h1 {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    font-size: 32px;
+    color: rgb(75, 241, 42);
+    
+}
+
+
 .popup {
     display: none;
     position: fixed;

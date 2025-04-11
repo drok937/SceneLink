@@ -7,13 +7,15 @@ let selectedBand = null; // Track the selected band
 
 //-----------------------Build class for each band node--------------------------------------------
 class BandNode {
+    
     constructor(name, numShows) {
+        let padding = 100; // Ensures nodes don't get too close to the edges
         this.name = name;
-        this.x = random(100, windowWidth - 50);
-        this.y = random(100, windowHeight - 50);
         this.size = map(numShows, 1, 10, 10, 50);
+
+        this.x = random(padding, windowWidth - padding);
+        this.y = random(padding, windowHeight - padding);
     }
-   
 
     drawConnections() {
         // Draw secondary connections (Red)
@@ -76,6 +78,7 @@ function setupDataVis(allPairings, secondaryConnections) {
     let cnv = createCanvas(windowWidth, windowHeight);
     cnv.parent("canvas-container");
 
+
     for (let band in allPairings) {
         maxShows = max(maxShows, Object.keys(allPairings[band]).length);
     }
@@ -98,6 +101,16 @@ function setupDataVis(allPairings, secondaryConnections) {
     bands = Object.keys(allPairings).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
 
 
+}
+
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+
+    // Reposition nodes to stay within bounds
+    for (let band of bands) {
+        band.x = constrain(band.x, 50, windowWidth - 50);
+        band.y = constrain(band.y, 55, windowHeight - 50);
+    }
 }
 
 function mousePressed() {
