@@ -129,7 +129,10 @@ function mousePressed() {
 //------------------------ Draw -----------------------------
 function draw() {
     background(0);
-
+     // Apply forces for magnetism
+     for (let band of bands) {
+    band.applyForces();
+    }
     // Draw connections
     for (let band of bands) {
         if (band instanceof BandNode) {
