@@ -2,6 +2,7 @@ let bands = [];
 let maxShows = 1;
 let maxPConnections = 1; 
 let maxSConnections = 1; 
+let selectedBand = null; // Track the selected band
 
 
 //-----------------------Build class for each band node--------------------------------------------
@@ -45,7 +46,7 @@ class BandNode {
         }
     }
     
-    
+        
 
     display() {
         noStroke();
@@ -59,6 +60,12 @@ class BandNode {
         textSize(textSizeScaled);
         text(this.name, this.x, this.y - 15);
     }
+   
+    clicked(mx, my) {
+        let d = dist(mx, my, this.x, this.y);
+        return d < this.size * 0.5; // Check if clicked inside the node
+    }
+  
 }
 
 //------------------------ Setup -------------------------------------------------------------------
@@ -93,6 +100,19 @@ function setupDataVis(allPairings, secondaryConnections) {
 
 }
 
+function mousePressed() {
+    for (let band of bands) {
+        if (band.clicked(mouseX, mouseY)) {
+            selectedBand = band;
+            showPopup(band.name);
+            return;
+        }
+    }
+    closePopup();
+}
+
+
+
 //------------------------ Draw -----------------------------
 function draw() {
     background(0);
@@ -111,3 +131,67 @@ function draw() {
         }
     }
 }
+
+
+// ---------------------- POPUP FUNCTIONS ----------------------
+
+function showPopup(bandName) {
+    let popup = document.getElementById("popup");
+    let popupContent = document.getElementById("popup-content");
+
+    if (!popupContent) {
+        console.error("Popup content element not found!");
+        return;
+    }
+
+    // Ensure the band has primary connections before looping
+    let primaryConnectionsList = "";
+    if (allPairings[bandName]) {
+        primaryConnectionsList = Object.keys(allPairings[bandName])
+            .map(otherBand => `<li>${otherBand} (${allPairings[bandName][otherBand]})</li>`)
+            .join("");
+    };
+
+    if (secondaryConnections[bandName]) {
+        secondaryConnectionsList = Object.keys(secondaryConnections[bandName])
+            .map(otherBand => `<li>${otherBand} (${secondaryConnections[bandName][otherBand]})</li>`)
+            .join("");
+        };
+    
+
+    
+
+    // Inject the content into the popup
+    popupContent.innerHTML = `
+        <h2>${bandName}</h2>
+        <p>Details about ${bandName}.</p>
+            <div class="connections-container">
+                <div class="connections-list">
+                    <h3>Primary Connections:</h3>
+                    <ul>${primaryConnectionsList || "<li>No primary connections</li>"}</ul>
+                </div>
+                <div class="connections-list">
+                    <h3>Secondary Connections:</h3>
+                    <ul>${secondaryConnectionsList || "<li>No secondary connections</li>"}</ul>
+                </div>
+            </div>
+    `;
+
+    popup.style.display = "block";
+};
+
+function closePopup() {
+    let popup = document.getElementById("popup");
+    popup.style.display = "none";
+}
+
+// Close the popup when clicking outside
+window.onclick = function(event) {
+    let popup = document.getElementById("popup");
+    let popupBox = document.querySelector(".popup-box");
+
+    // If the click is outside the popup-box but inside the popup, close it
+    if (event.target === popup) {
+        closePopup();
+    }
+};
