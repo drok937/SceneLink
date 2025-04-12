@@ -5,6 +5,11 @@ let maxSConnections = 1;
 let selectedBand = null; // Track the selected band
 
 
+let settleFrames = 150;  // Number of frames before movement stops
+let currentFrame = 0;    // Counter for frames
+
+
+
 //-----------------------Build class for each band node--------------------------------------------
 class BandNode {
     
@@ -52,11 +57,11 @@ class BandNode {
         let forceX = 0;
         let forceY = 0;
         
-        let baseAttractionStrength = .07;  // Base attraction strength
-        let baseRepulsionStrength = 500;    // Base repulsion strength 
-        let minDistance = 250;               // Minimum distance before repulsion kicks in
-        let spreadStrength = 0.002;         // Outward spread force to prevent central clustering
-        let bufferDistance = 700            //buffer around each node
+        let baseAttractionStrength = .7;  // Base attraction strength
+        let baseRepulsionStrength = 700;    // Base repulsion strength 
+        let minDistance = 200;               // Minimum distance before repulsion kicks in
+        let spreadStrength = 0.1;         // Outward spread force to prevent central clustering
+        let bufferDistance = 900            //buffer around each node
 
         for (let otherBand of bands) {
             if (otherBand === this) continue; // Skip self
@@ -89,8 +94,6 @@ class BandNode {
 
             
             // Apply repulsion force if too close
-            //if (distance < 250) {  
-               // let repulsionForce = baseRepulsionStrength / (distance * distance);
                 forceX -= repulsionForce * (dx / distance);
                 forceY -= repulsionForce * (dy / distance);
             }
@@ -136,7 +139,15 @@ class BandNode {
 
 //------------------------ Setup -------------------------------------------------------------------
 function setupDataVis(allPairings, secondaryConnections) {
-    //console.log(secondaryConnections[this.name]);
+
+        // // Run attraction and repulsion forces for `settleFrames` frames
+        for (let i = 0; i < settleFrames; i++) {
+            for (let band of bands) {
+                band.applyForces();
+            }
+        }
+        
+        console.log("Simulation settled after " + settleFrames + " frames.");
 
     console.log("Data visualization initialized.");
     let cnv = createCanvas(windowWidth, windowHeight);
@@ -177,6 +188,9 @@ function windowResized() {
     }
 }
 
+
+
+
 function mousePressed() {
     for (let band of bands) {
         if (band.clicked(mouseX, mouseY)) {
@@ -193,9 +207,16 @@ function mousePressed() {
 //------------------------ Draw -----------------------------
 function draw() {
     background(0);
-     // Apply forces for magnetism
-     for (let band of bands) {
-    band.applyForces();
+    //  // Apply forces for magnetism
+    //  for (let band of bands) {
+    // band.applyForces();
+    // }
+
+    if (currentFrame < settleFrames) {
+        for (let band of bands) {
+            band.applyForces();
+        }
+        currentFrame++;
     }
 
     // Draw connections
