@@ -5,7 +5,7 @@ let maxSConnections = 1;
 let selectedBand = null; // Track the selected band
 
 
-let settleFrames = 800;  // Number of frames before movement stops
+let settleFrames = 200;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
 
@@ -14,7 +14,7 @@ let currentFrame = 0;    // Counter for frames
 class BandNode {
     
     constructor(name, numShows) {
-        let padding = 100; // Ensures nodes don't get too close to the edges
+        let padding = 500; // Ensures nodes don't get too close to the edges
         this.name = name;
         this.size = map(numShows, 1, 10, 10, 50);
 
@@ -57,11 +57,11 @@ class BandNode {
         let forceX = 0;
         let forceY = 0;
         
-        let baseAttractionStrength = .08;  // Base attraction strength
-        let baseRepulsionStrength = 800;    // Base repulsion strength 
+        let baseAttractionStrength = .06;  // Base attraction strength
+        let baseRepulsionStrength = 900;    // Base repulsion strength 
         let minDistance = 200;               // Minimum distance before repulsion kicks in
         let spreadStrength = 0.001;         // Outward spread force to prevent central clustering
-        let bufferDistance = 200000            //buffer around each node
+        let bufferDistance = 2000            //buffer around each node
 
         for (let otherBand of bands) {
             if (otherBand === this) continue; // Skip self
@@ -117,13 +117,16 @@ class BandNode {
         this.y = constrain(this.y, 100, windowHeight - 100);
     } 
 
+    
+
     display() {
         noStroke();
         fill(0, 200, 0);
         ellipse(this.x, this.y, this.size * 0.5, this.size * 0.5);
 
-        let textSizeScaled = map(Object.keys(allPairings[this.name]).length, 1, maxShows, 10, 25);
-        stroke(.50);
+        let textSizeScaled = map(Object.keys(allPairings[this.name]).length, 1, maxShows, 12, 35);
+        stroke(0);
+        strokeWeight(.7);
         textAlign(CENTER);
         fill(255);
         textSize(textSizeScaled);
@@ -140,20 +143,20 @@ class BandNode {
 //------------------------ Setup -------------------------------------------------------------------
 function setupDataVis(allPairings, secondaryConnections) {
 
-        // // Run attraction and repulsion forces for `settleFrames` frames
-        for (let i = 0; i < settleFrames; i++) {
-            for (let band of bands) {
-                band.applyForces();
-            }
-        }
-        
-        console.log("Simulation settled after " + settleFrames + " frames.");
+     
 
     console.log("Data visualization initialized.");
     let cnv = createCanvas(windowWidth, windowHeight);
     cnv.parent("canvas-container");
 
+    bands = Object.keys(allPairings).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
 
+       // // Run attraction and repulsion forces for `settleFrames` frames
+   for (let i = 0; i < settleFrames; i++) {
+    for (let band of bands) {
+        band.applyForces();
+    }
+}
     for (let band in allPairings) {
         maxShows = max(maxShows, Object.keys(allPairings[band]).length);
     }
@@ -173,7 +176,7 @@ function setupDataVis(allPairings, secondaryConnections) {
         }
     }
 
-    bands = Object.keys(allPairings).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
+
 
 
 }
@@ -190,6 +193,8 @@ function windowResized() {
 
 
 
+console.log("Simulation settled after " + settleFrames + " frames.");
+
 
 function mousePressed() {
     for (let band of bands) {
@@ -202,15 +207,61 @@ function mousePressed() {
     closePopup();
 }
 
+function avoidLabelOverlap(bands) {
+    for (let i = 0; i < bands.length; i++) {
+      for (let j = i + 1; j < bands.length; j++) {
+        let a = bands[i];
+        let b = bands[j];
+     
+         // Estimate text dimensions
+      textSize(a.size || 12);  // Default size if not set
+      let aWidth = textWidth(a.name);
+      let aHeight = a.size || 12;
+
+      textSize(b.size || 12);
+      let bWidth = textWidth(b.name);
+      let bHeight = b.size || 12;
+
+      // Use diagonal bounding box distance
+      let minDist = sqrt((aWidth / 2 + bWidth / 2) ** 2 + (aHeight / 2 + bHeight / 2) ** 2);
+
+      let dx = b.x - a.x;
+      let dy = b.y - a.y;
+      let d = sqrt(dx * dx + dy * dy);
+
+      if (d < minDist && d > 0.01) {
+        let push = (minDist - d) * 0.05;
+        let angle = atan2(dy, dx);
+        a.x -= cos(angle) * push;
+        a.y -= sin(angle) * push;
+        b.x += cos(angle) * push;
+        b.y += sin(angle) * push;
+
+            // Constrain within window bounds with a small margin
+            this.x = constrain(this.x, 100, windowWidth - 100);
+            this.y = constrain(this.y, 100, windowHeight - 100);
+      }
+    }
+  }
+}
+
 
 
 //------------------------ Draw -----------------------------
 function draw() {
+   
     background(0);
     //  // Apply forces for magnetism
     //  for (let band of bands) {
     // band.applyForces();
     // }
+    avoidLabelOverlap(bands);
+    // Draw connections
+    for (let band of bands) {
+        if (band instanceof BandNode) {
+            band.drawConnections();
+        }
+    }
 
     if (currentFrame < settleFrames) {
         for (let band of bands) {
@@ -218,13 +269,7 @@ function draw() {
         }
         currentFrame++;
     }
-
-    // Draw connections
-    for (let band of bands) {
-        if (band instanceof BandNode) {
-            band.drawConnections();
-        }
-    }
+  
 
     // Draw band nodes
     for (let band of bands) {
@@ -233,6 +278,8 @@ function draw() {
         }
     }
 }
+
+
 
 
 // ---------------------- POPUP FUNCTIONS ----------------------

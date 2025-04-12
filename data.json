@@ -131,6 +131,20 @@
       },
       {
         "showID": 12,
+        "date": "4/26/25",
+        "venue": "Warehouse On Watts",
+        "bands": [
+          "Marie Davidson",
+          "Anthony Naples",
+          "Ayesha",
+          "Budino",
+          "Nabihah Iqbal",
+          "Dave P.",
+          "Yosuke DJ"
+        ]
+      },
+      {
+        "showID": 13,
         "date": "12/21/25",
         "venue": "Upstairs at the 700",
         "bands": [
