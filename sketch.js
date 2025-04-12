@@ -5,7 +5,7 @@ let maxSConnections = 1;
 let selectedBand = null; // Track the selected band
 
 
-let settleFrames = 150;  // Number of frames before movement stops
+let settleFrames = 800;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
 
@@ -57,11 +57,11 @@ class BandNode {
         let forceX = 0;
         let forceY = 0;
         
-        let baseAttractionStrength = .7;  // Base attraction strength
-        let baseRepulsionStrength = 700;    // Base repulsion strength 
+        let baseAttractionStrength = .08;  // Base attraction strength
+        let baseRepulsionStrength = 800;    // Base repulsion strength 
         let minDistance = 200;               // Minimum distance before repulsion kicks in
-        let spreadStrength = 0.1;         // Outward spread force to prevent central clustering
-        let bufferDistance = 900            //buffer around each node
+        let spreadStrength = 0.001;         // Outward spread force to prevent central clustering
+        let bufferDistance = 200000            //buffer around each node
 
         for (let otherBand of bands) {
             if (otherBand === this) continue; // Skip self
