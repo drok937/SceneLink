@@ -222,7 +222,7 @@ function avoidLabelOverlap(bands) {
       let d = sqrt(dx * dx + dy * dy);
 
       if (d < minDist && d > 0.01) {
-        let push = (minDist - d) * 0.00008;
+        let push = (minDist - d) * 0.00009;
         let angle = atan2(dy, dx);
         a.x -= cos(angle) * push;
         a.y -= sin(angle) * push;
