@@ -222,16 +222,12 @@ function avoidLabelOverlap(bands) {
       let d = sqrt(dx * dx + dy * dy);
 
       if (d < minDist && d > 0.01) {
-        let push = (minDist - d) * 0.00009;
+        let push = (minDist - d) * 0.0001;
         let angle = atan2(dy, dx);
         a.x -= cos(angle) * push;
         a.y -= sin(angle) * push;
         b.x += cos(angle) * push;
         b.y += sin(angle) * push;
-
-            // Constrain within window bounds with a small margin
-            this.x = constrain(this.x, 100, windowWidth - 100);
-            this.y = constrain(this.y, 100, windowHeight - 100);
       }
     }
   }
