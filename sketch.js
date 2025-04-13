@@ -4,8 +4,8 @@ let maxPConnections = 1;
 let maxSConnections = 1; 
 let selectedBand = null; // Track the selected band
 
-
-let settleFrames = 200;  // Number of frames before movement stops
+//Set time for magnetism to run
+let settleFrames = 300;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
 
@@ -53,16 +53,17 @@ class BandNode {
         }
     }
     
+    //-----------------------------------------------------------------------------------
     applyForces() {
         let forceX = 0;
         let forceY = 0;
-        
+     //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
         let baseAttractionStrength = .06;  // Base attraction strength
         let baseRepulsionStrength = 900;    // Base repulsion strength 
         let minDistance = 200;               // Minimum distance before repulsion kicks in
         let spreadStrength = 0.001;         // Outward spread force to prevent central clustering
         let bufferDistance = 2000            //buffer around each node
-
+    //-----------------------------------------------------------------------------------
         for (let otherBand of bands) {
             if (otherBand === this) continue; // Skip self
             //calculate distance between nodes
@@ -85,13 +86,11 @@ class BandNode {
                 forceY += attractionForce * (dy / distance);
             } 
 
+            //keep it within bounds of the canvas
             if (distance < bufferDistance) {
                 let repulsionForce = baseRepulsionStrength / (distance * distance);
                     let overlapFactor = (bufferDistance - distance) / bufferDistance;
                     repulsionForce *= 1 + overlapFactor * 2
-                    
-        
-
             
             // Apply repulsion force if too close
                 forceX -= repulsionForce * (dx / distance);
@@ -118,7 +117,7 @@ class BandNode {
     } 
 
     
-
+//---------------------------------NODE VISUALS----------------------------------------
     display() {
         noStroke();
         fill(0, 200, 0);
@@ -143,16 +142,14 @@ class BandNode {
 //------------------------ Setup -------------------------------------------------------------------
 function setupDataVis(allPairings, secondaryConnections) {
 
-     
-
     console.log("Data visualization initialized.");
     let cnv = createCanvas(windowWidth, windowHeight);
     cnv.parent("canvas-container");
 
     bands = Object.keys(allPairings).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
 
-       // // Run attraction and repulsion forces for `settleFrames` frames
-   for (let i = 0; i < settleFrames; i++) {
+       // Define time limit for "applyforces"
+    for (let i = 0; i < settleFrames; i++) {
     for (let band of bands) {
         band.applyForces();
     }
@@ -161,24 +158,20 @@ function setupDataVis(allPairings, secondaryConnections) {
         maxShows = max(maxShows, Object.keys(allPairings[band]).length);
     }
 
-    // Calculate maxPConnections **before drawing**
+    // Calculate Primary connection count
     maxPConnections = 1;
     for (let band in allPairings) {
         for (let otherBand in allPairings[band]) {
             maxPConnections = max(maxPConnections, allPairings[band][otherBand]);
         }
     }
-
+    // Calculate Secondary connection count
     maxSConnections = 1;
     for (let band in secondaryConnections) {
         for (let otherBand in secondaryConnections[band]) {
             maxSConnections = max(maxSConnections, secondaryConnections[band][otherBand]);
         }
     }
-
-
-
-
 }
 
 function windowResized() {
@@ -191,11 +184,9 @@ function windowResized() {
     }
 }
 
-
-
 console.log("Simulation settled after " + settleFrames + " frames.");
 
-
+//tell node to open popup when clicked
 function mousePressed() {
     for (let band of bands) {
         if (band.clicked(mouseX, mouseY)) {
@@ -207,6 +198,7 @@ function mousePressed() {
     closePopup();
 }
 
+//------------------------------AVOID TEXT OVERLAPS---------------------------------------
 function avoidLabelOverlap(bands) {
     for (let i = 0; i < bands.length; i++) {
       for (let j = i + 1; j < bands.length; j++) {
@@ -230,7 +222,7 @@ function avoidLabelOverlap(bands) {
       let d = sqrt(dx * dx + dy * dy);
 
       if (d < minDist && d > 0.01) {
-        let push = (minDist - d) * 0.05;
+        let push = (minDist - d) * 0.00008;
         let angle = atan2(dy, dx);
         a.x -= cos(angle) * push;
         a.y -= sin(angle) * push;
@@ -251,10 +243,7 @@ function avoidLabelOverlap(bands) {
 function draw() {
    
     background(0);
-    //  // Apply forces for magnetism
-    //  for (let band of bands) {
-    // band.applyForces();
-    // }
+
     avoidLabelOverlap(bands);
     // Draw connections
     for (let band of bands) {
@@ -278,9 +267,6 @@ function draw() {
         }
     }
 }
-
-
-
 
 // ---------------------- POPUP FUNCTIONS ----------------------
 
@@ -307,9 +293,6 @@ function showPopup(bandName) {
             .join("");
         };
     
-
-    
-
     // Inject the content into the popup
     popupContent.innerHTML = `
         <h2>${bandName}</h2>
