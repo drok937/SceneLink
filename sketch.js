@@ -59,8 +59,8 @@ class BandNode {
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
         let baseAttractionStrength = .06;  // Base attraction strength
-        let baseRepulsionStrength = 900;    // Base repulsion strength 
-        let minDistance = 200;               // Minimum distance before repulsion kicks in
+        let baseRepulsionStrength = 1000;    // Base repulsion strength 
+        let minDistance = 175;               // Minimum distance before repulsion kicks in
         let spreadStrength = 0.001;         // Outward spread force to prevent central clustering
         let bufferDistance = 2000            //buffer around each node
     //-----------------------------------------------------------------------------------
@@ -75,8 +75,14 @@ class BandNode {
             if (distance < 1) distance = 1; // Avoid division by zero
             
             //sets variable for how many times band has played together
-            let connectionStrength = allPairings[this.name]?.[otherBand.name]  || 0;
+            // change denominators to alter ratio of primary to seconary connection strength
+            let primaryStrength = allPairings[this.name]?.[otherBand.name] / 2  || 0;
+            let secondaryStrength = (secondaryConnections[this.name]?.[otherBand.name] || 0) / 3;
+            let connectionStrength = primaryStrength + secondaryStrength;
+
+        
             let isConnected = connectionStrength > 0;
+          
 
     
             if (isConnected) {
