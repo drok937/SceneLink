@@ -8,13 +8,11 @@ let selectedBand = null; // Track the selected band
 let settleFrames = 300;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
-
-
 //-----------------------Build class for each band node--------------------------------------------
 class BandNode {
     
     constructor(name, numShows) {
-        let padding = 500; // Ensures nodes don't get too close to the edges
+        let padding = 200; // Ensures nodes don't get too close to the edges
         this.name = name;
         this.size = map(numShows, 1, 10, 10, 50);
 
@@ -45,7 +43,7 @@ class BandNode {
             if (allPairings[this.name][otherBand] > 0) {
                 let otherBandNode = bands.find(b => b.name === otherBand);
                 if (otherBandNode) {
-                    stroke(255, 200); // White with some transparency
+                    stroke(255, 300); // White with some transparency
                     strokeWeight(map(allPairings[this.name][otherBand], 1, maxPConnections, 1, 6, true));
                     line(this.x, this.y, otherBandNode.x, otherBandNode.y);
                 }
@@ -59,10 +57,10 @@ class BandNode {
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
         let baseAttractionStrength = .06;  // Base attraction strength
-        let baseRepulsionStrength = 1000;    // Base repulsion strength 
-        let minDistance = 175;               // Minimum distance before repulsion kicks in
-        let spreadStrength = 0.001;         // Outward spread force to prevent central clustering
-        let bufferDistance = 2000            //buffer around each node
+        let baseRepulsionStrength = 2000;    // Base repulsion strength 
+        let minDistance = 250;               // Minimum distance before repulsion kicks in
+        let spreadStrength = 0.0007;         // Outward spread force to prevent central clustering
+        let bufferDistance = 1500            //buffer around each node
     //-----------------------------------------------------------------------------------
         for (let otherBand of bands) {
             if (otherBand === this) continue; // Skip self
@@ -80,11 +78,8 @@ class BandNode {
             let secondaryStrength = (secondaryConnections[this.name]?.[otherBand.name] || 0) / 3;
             let connectionStrength = primaryStrength + secondaryStrength;
 
-        
             let isConnected = connectionStrength > 0;
           
-
-    
             if (isConnected) {
                 // Scale attraction based on primary connection strength
                 let attractionStrength = baseAttractionStrength * connectionStrength;
@@ -130,7 +125,7 @@ class BandNode {
         fill(0, 200, 0);
         ellipse(this.x, this.y, this.size * 0.5, this.size * 0.5);
 
-        let textSizeScaled = map(Object.keys(allPairings[this.name]).length, 1, maxShows, 12, 35);
+        let textSizeScaled = map(Object.keys(allPairings[this.name]).length, 1, maxShows, 10, 30);
         stroke(0);
         strokeWeight(.7);
         textAlign(CENTER);
@@ -155,12 +150,12 @@ function setupDataVis(allPairings, secondaryConnections) {
 
     bands = Object.keys(allPairings).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
 
-       // Define time limit for "applyforces"
+    // Define time limit for "applyforces"
     for (let i = 0; i < settleFrames; i++) {
     for (let band of bands) {
         band.applyForces();
+        }
     }
-}
     for (let band in allPairings) {
         maxShows = max(maxShows, Object.keys(allPairings[band]).length);
     }
@@ -271,62 +266,3 @@ function draw() {
     }
 }
 
-// ---------------------- POPUP FUNCTIONS ----------------------
-
-function showPopup(bandName) {
-    let popup = document.getElementById("popup");
-    let popupContent = document.getElementById("popup-content");
-
-    if (!popupContent) {
-        console.error("Popup content element not found!");
-        return;
-    }
-
-    // Ensure the band has primary connections before looping
-    let primaryConnectionsList = "";
-    if (allPairings[bandName]) {
-        primaryConnectionsList = Object.keys(allPairings[bandName])
-            .map(otherBand => `<li>${otherBand} (${allPairings[bandName][otherBand]})</li>`)
-            .join("");
-    };
-
-    if (secondaryConnections[bandName]) {
-        secondaryConnectionsList = Object.keys(secondaryConnections[bandName])
-            .map(otherBand => `<li>${otherBand} (${secondaryConnections[bandName][otherBand]})</li>`)
-            .join("");
-        };
-    
-    // Inject the content into the popup
-    popupContent.innerHTML = `
-        <h2>${bandName}</h2>
-        <p>Details about ${bandName}.</p>
-            <div class="connections-container">
-                <div class="connections-list">
-                    <h3>Primary Connections:</h3>
-                    <ul>${primaryConnectionsList || "<li>No primary connections</li>"}</ul>
-                </div>
-                <div class="connections-list">
-                    <h3>Secondary Connections:</h3>
-                    <ul>${secondaryConnectionsList || "<li>No secondary connections</li>"}</ul>
-                </div>
-            </div>
-    `;
-
-    popup.style.display = "block";
-};
-
-function closePopup() {
-    let popup = document.getElementById("popup");
-    popup.style.display = "none";
-}
-
-// Close the popup when clicking outside
-window.onclick = function(event) {
-    let popup = document.getElementById("popup");
-    let popupBox = document.querySelector(".popup-box");
-
-    // If the click is outside the popup-box but inside the popup, close it
-    if (event.target === popup) {
-        closePopup();
-    }
-};
