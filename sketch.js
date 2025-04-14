@@ -4,7 +4,7 @@ let maxPConnections = 1;
 let maxSConnections = 1; 
 let selectedBand = null; // Track the selected band
 
-//Set time for magnetism to run
+//Set time for magnetism to run. Stop after settleFrames
 let settleFrames = 300;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
@@ -77,6 +77,7 @@ class BandNode {
             //sets variable for how many times band has played together
             let connectionStrength = allPairings[this.name]?.[otherBand.name]  || 0;
             let isConnected = connectionStrength > 0;
+
     
             if (isConnected) {
                 // Scale attraction based on primary connection strength

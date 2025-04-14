@@ -27,30 +27,7 @@ async function populate() {
         console.error("Error loading data:", error);
     }
 }
-//----------------Generate a list of the lineups that are in the JSON file--------------------
-// function populateShows(obj) { 
-//     const section = document.querySelector('section');//navigate to existing HTML section
-//     //section.innerHTML = "";
-    
-//     const concertList = obj.shows;
-//     for (const show of concertList) { //cycle through all of the shows in the list of shows and add the following text
-//         const showSection = document.createElement("article"); //the container that the shows are printed into
-//         const venueName = document.createElement("p"); //venue name
-//         const lineup = document.createElement('ul'); //show lineup
 
-//         venueName.textContent = `Venue: ${show.venue}`;
-        
-//         for (const band of show.bands) { //in each show cycle through the bands to create lineup
-//             const artistName = document.createElement("li");
-//             artistName.textContent = band;
-//            // lineup.appendChild(artistName);
-//         }
-        
-//         // showSection.appendChild(venueName);
-//         // showSection.appendChild(lineup);
-//         // section.appendChild(showSection);
-//     }
-// }
 //----------------------------------Process data for direct pairings of bands----------------------------
 function generatePairings(obj) { //show which artists have played with which other artists how many times
     const concertList = obj.shows;
@@ -95,60 +72,5 @@ function generateSecondaryConnections(allPairings) {
     }
     return secondaryConnections;
 }
-
-
-
-
-//-----------------------------Print band pairings to webpage-------------------------------
-// function populatePairings(allPairings, secondaryConnections) {
-//     const pairingsSection = document.createElement('section');
-//    // pairingsSection.innerHTML = "<h2>Artist Pairings</h2>";
-
-//     for (const artist in allPairings) {
-//         const artistHeading = document.createElement("h3");
-//         artistHeading.textContent = artist;
-
-//         // DIRECT CONNECTIONS
-//         const directHeader = document.createElement("h4");
-//         directHeader.textContent = "Direct Connections:";
-//         const directList = document.createElement("ul");
-
-//         for (const [otherArtist, count] of Object.entries(allPairings[artist])) {
-//             const listItem = document.createElement("li");
-//             listItem.textContent = `${otherArtist} (${count} times)`;
-//            // directList.appendChild(listItem);
-//         }
-
-//         // INDIRECT CONNECTIONS
-//         const indirectHeader = document.createElement("h4");
-//         indirectHeader.textContent = "Indirect Connections:";
-//         const indirectList = document.createElement("ul");
-
-//         if (secondaryConnections && secondaryConnections[artist] && Object.keys(secondaryConnections[artist]).length > 0) {
-//             for (const [otherArtist, count] of Object.entries(secondaryConnections[artist])) {
-//                 const listItem = document.createElement("li");
-//                 listItem.textContent = `${otherArtist} (${count} times)`;
-//                 indirectList.appendChild(listItem);
-//             }
-//         } else {
-//             const noConnections = document.createElement("li");
-//             noConnections.textContent = "No secondary connections";
-//             indirectList.appendChild(noConnections);
-//         }
-
-//         // Append everything
-//         // pairingsSection.appendChild(artistHeading);
-//         // pairingsSection.appendChild(directHeader);
-//         // pairingsSection.appendChild(directList);
-//         // pairingsSection.appendChild(indirectHeader);
-//         // pairingsSection.appendChild(indirectList);
-//     }
-
-//     document.body.appendChild(pairingsSection);
-// }
-
-
-
-
 
 populate();
