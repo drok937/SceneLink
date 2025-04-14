@@ -74,3 +74,63 @@ function generateSecondaryConnections(allPairings) {
 }
 
 populate();
+
+// ---------------------- POPUP FUNCTIONS ----------------------
+
+function showPopup(bandName) {
+    let popup = document.getElementById("popup");
+    let popupContent = document.getElementById("popup-content");
+
+    if (!popupContent) {
+        console.error("Popup content element not found!");
+        return;
+    }
+
+    // Ensure the band has primary connections before looping
+    let primaryConnectionsList = "";
+    if (allPairings[bandName]) {
+        primaryConnectionsList = Object.keys(allPairings[bandName])
+            .map(otherBand => `<li>${otherBand} (${allPairings[bandName][otherBand]})</li>`)
+            .join("");
+    };
+
+    if (secondaryConnections[bandName]) {
+        secondaryConnectionsList = Object.keys(secondaryConnections[bandName])
+            .map(otherBand => `<li>${otherBand} (${secondaryConnections[bandName][otherBand]})</li>`)
+            .join("");
+        };
+    
+    // Inject the content into the popup
+    popupContent.innerHTML = `
+        <h2>${bandName}</h2>
+        <p>Details about ${bandName}.</p>
+            <div class="connections-container">
+                <div class="connections-list">
+                    <h3>Primary Connections:</h3>
+                    <ul>${primaryConnectionsList || "<li>No primary connections</li>"}</ul>
+                </div>
+                <div class="connections-list">
+                    <h3>Secondary Connections:</h3>
+                    <ul>${secondaryConnectionsList || "<li>No secondary connections</li>"}</ul>
+                </div>
+            </div>
+    `;
+
+    popup.style.display = "block";
+};
+
+function closePopup() {
+    let popup = document.getElementById("popup");
+    popup.style.display = "none";
+}
+
+// Close the popup when clicking outside
+window.onclick = function(event) {
+    let popup = document.getElementById("popup");
+    let popupBox = document.querySelector(".popup-box");
+
+    // If the click is outside the popup-box but inside the popup, close it
+    if (event.target === popup) {
+        closePopup();
+    }
+};
