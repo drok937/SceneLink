@@ -5,7 +5,7 @@ let maxSConnections = 1;
 let selectedBand = null; // Track the selected band
 
 //Set time for magnetism to run. Stop after settleFrames
-let settleFrames = 300;  // Number of frames before movement stops
+let settleFrames = 200;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
 //-----------------------Build class for each band node--------------------------------------------
@@ -43,7 +43,7 @@ class BandNode {
             if (allPairings[this.name][otherBand] > 0) {
                 let otherBandNode = bands.find(b => b.name === otherBand);
                 if (otherBandNode) {
-                    stroke(255, 300); // White with some transparency
+                    stroke(200, 250); // White with some transparency
                     strokeWeight(map(allPairings[this.name][otherBand], 1, maxPConnections, 1, 6, true));
                     line(this.x, this.y, otherBandNode.x, otherBandNode.y);
                 }
@@ -127,7 +127,7 @@ class BandNode {
 
         let textSizeScaled = map(Object.keys(allPairings[this.name]).length, 1, maxShows, 10, 30);
         stroke(0);
-        strokeWeight(.7);
+        strokeWeight(2.5);
         textAlign(CENTER);
         fill(255);
         textSize(textSizeScaled);
