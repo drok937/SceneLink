@@ -293,8 +293,6 @@ function draw() {
     translate(offsetX, offsetY);
     scale(zoom);
 
-
-
     // Draw connections
     for (let band of bands) {
         if (band instanceof BandNode) {
