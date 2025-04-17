@@ -5,7 +5,7 @@ let maxSConnections = 1;
 let selectedBand = null; // Track the selected band
 
 //Set time for magnetism to run. Stop after settleFrames
-let settleFrames = 200;  // Number of frames before movement stops
+let settleFrames = 190;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
 //-----------------------Build class for each band node--------------------------------------------
