@@ -196,22 +196,29 @@ function windowResized() {
 
 console.log("Simulation settled after " + settleFrames + " frames.");
 
-//tell node to open popup when clicked
+//-------------------------------MOUSE PRESSED---------------------------------------
 function mousePressed() {
+   
+    // Start dragging
+    isDragging = true;
+    dragStartX = mouseX - offsetX;
+    dragStartY = mouseY - offsetY;
+
+    let adjustedMouseX = (mouseX - offsetX) / zoom;
+    let adjustedMouseY = (mouseY - offsetY) / zoom;
+
+    
+    //tell node to open popup when clicked
     for (let band of bands) {
-        if (band.clicked(mouseX, mouseY)) {
+        if (band.clicked(adjustedMouseX, adjustedMouseY)) {
             selectedBand = band;
             showPopup(band.name);
             return;
         }
     }
     closePopup();
-
-    // Start dragging
-    isDragging = true;
-    dragStartX = mouseX - offsetX;
-    dragStartY = mouseY - offsetY;
 }
+
 function mouseReleased() {
     isDragging = false;
 }
@@ -224,12 +231,13 @@ function mouseDragged() {
   }
 
   function mouseWheel(event) {
-    let zoomSensitivity = 0.001;
+    let zoomSensitivity = 0.004;
     let newZoom = zoom - event.delta * zoomSensitivity;
     newZoom = constrain(newZoom, 0.1, 5);
   
     // Adjust offset so zoom feels centered around mouse
     let zoomFactor = newZoom / zoom;
+
     offsetX = mouseX - (mouseX - offsetX) * zoomFactor;
     offsetY = mouseY - (mouseY - offsetY) * zoomFactor;
   
@@ -311,12 +319,12 @@ function draw() {
     }
 
   
-    // Draw label nodes last so they render on top
-    for (let band of bands) {
-        if (band instanceof LabelNode) {
-            band.display();
-        }
-    }
+    // // Draw label nodes last so they render on top
+    // for (let band of bands) {
+    //     if (band instanceof LabelNode) {
+    //         band.display();
+    //     }
+    // }
 
     avoidLabelOverlap(bands);
 
