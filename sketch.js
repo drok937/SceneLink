@@ -8,6 +8,14 @@ let selectedBand = null; // Track the selected band
 let settleFrames = 200;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
+//zoom and pan settings
+let zoom = 1;
+let offsetX = 0;
+let offsetY = 0;
+let isDragging = false;
+let dragStartX, dragStartY;
+
+
 //-----------------------Build class for each band node--------------------------------------------
 class BandNode {
     
@@ -198,7 +206,38 @@ function mousePressed() {
         }
     }
     closePopup();
+
+    // Start dragging
+    isDragging = true;
+    dragStartX = mouseX - offsetX;
+    dragStartY = mouseY - offsetY;
 }
+function mouseReleased() {
+    isDragging = false;
+}
+
+function mouseDragged() {
+    if (isDragging) {
+      offsetX = mouseX - dragStartX;
+      offsetY = mouseY - dragStartY;
+    }
+  }
+
+  function mouseWheel(event) {
+    let zoomSensitivity = 0.001;
+    let newZoom = zoom - event.delta * zoomSensitivity;
+    newZoom = constrain(newZoom, 0.1, 5);
+  
+    // Adjust offset so zoom feels centered around mouse
+    let zoomFactor = newZoom / zoom;
+    offsetX = mouseX - (mouseX - offsetX) * zoomFactor;
+    offsetY = mouseY - (mouseY - offsetY) * zoomFactor;
+  
+    zoom = newZoom;
+    return false; // Prevent page scroll
+  }
+
+  
 
 //------------------------------AVOID TEXT OVERLAPS---------------------------------------
 function avoidLabelOverlap(bands) {
@@ -239,10 +278,15 @@ function avoidLabelOverlap(bands) {
 
 //------------------------ Draw -----------------------------
 function draw() {
-   
     background(0);
 
-    avoidLabelOverlap(bands);
+    // Apply pan and zoom
+    push();
+    translate(offsetX, offsetY);
+    scale(zoom);
+
+
+
     // Draw connections
     for (let band of bands) {
         if (band instanceof BandNode) {
@@ -250,19 +294,33 @@ function draw() {
         }
     }
 
+      // Draw band nodes
+      for (let band of bands) {
+        if (band instanceof BandNode) {
+            band.display();
+        }
+    }
+
+
+    // Apply forces during settling frames
     if (currentFrame < settleFrames) {
         for (let band of bands) {
             band.applyForces();
         }
         currentFrame++;
     }
-  
 
-    // Draw band nodes
+  
+    // Draw label nodes last so they render on top
     for (let band of bands) {
-        if (band instanceof BandNode) {
+        if (band instanceof LabelNode) {
             band.display();
         }
     }
+
+    avoidLabelOverlap(bands);
+
+    pop();
 }
+
 
