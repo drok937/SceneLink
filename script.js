@@ -10,6 +10,30 @@ async function populate() {
     try { 
         const response = await fetch('data.json'); //connect to JSON file
         const shows = await response.json();
+
+           // Count shows per band and store globally
+           counts = countShowsForAllBands(shows);
+
+           // Console log band counts for testing
+           console.log("Show count per band:");
+           Object.entries(counts).forEach(([band, count]) => {
+               console.log(`${band}: ${count}`);
+           });
+  
+           
+           function countShowsForAllBands(data) {
+              const counts = {};
+            
+              data.shows.forEach(show => {
+                show.bands.forEach(band => {
+                  if (!counts[band]) {
+                    counts[band] = 0;
+                  }
+                  counts[band]++;
+                });
+              });
+              return counts;
+            }
         
        // populateShows(shows);
         allPairings = generatePairings(shows);
