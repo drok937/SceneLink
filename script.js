@@ -4,6 +4,7 @@
 //-------------------------- Define allPairings and secondaryConnections as global variables
 let allPairings;
 let secondaryConnections;
+let counts = {};
 
 //--------------------------------------------Import data from JSON file-------------------
 async function populate() {
@@ -128,6 +129,7 @@ function showPopup(bandName) {
     popupContent.innerHTML = `
         <h2>${bandName}</h2>
         <p>Details about ${bandName}.</p>
+        <p>Show Count: ${counts[bandName] || 0}</p>
             <div class="connections-container">
                 <div class="connections-list">
                     <h3>Primary Connections:</h3>

@@ -22,10 +22,15 @@ class BandNode {
     constructor(name, numShows) {
         let padding = 200; // Ensures nodes don't get too close to the edges
         this.name = name;
+  
+        // If numShows is not passed in, look it up from the global counts object
+         this.numShows =  counts[name] || 1;
+
         this.size = map(numShows, 1, 10, 10, 50);
 
         this.x = random(padding, windowWidth - padding);
         this.y = random(padding, windowHeight - padding);
+
     }
 
     drawConnections() {
@@ -156,7 +161,11 @@ function setupDataVis(allPairings, secondaryConnections) {
     let cnv = createCanvas(windowWidth, windowHeight);
     cnv.parent("canvas-container");
 
-    bands = Object.keys(allPairings).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
+    // bands = Object.keys(allPairings).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
+
+    bands = Object.keys(allPairings)
+  .filter(band => (counts[band] || 1) > 1)  // Filter only bands with count > 2
+  .map(band => new BandNode(band, Object.keys(allPairings[band]).length));
 
     // Define time limit for "applyforces"
     for (let i = 0; i < settleFrames; i++) {
