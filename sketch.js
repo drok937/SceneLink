@@ -69,10 +69,10 @@ class BandNode {
         let forceX = 0;
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
-        let baseAttractionStrength = .06;  // Base attraction strength
+        let baseAttractionStrength = .1;  // Base attraction strength
         let baseRepulsionStrength = 2000;    // Base repulsion strength 
-        let minDistance = 250;               // Minimum distance before repulsion kicks in
-        let spreadStrength = 0.0007;         // Outward spread force to prevent central clustering
+        let minDistance = 125;               // Minimum distance before repulsion kicks in
+        let spreadStrength = 0.000;         // Outward spread force to prevent central clustering
         let bufferDistance = 1500            //buffer around each node
     //-----------------------------------------------------------------------------------
         for (let otherBand of bands) {
@@ -120,6 +120,24 @@ class BandNode {
         let spreadY = this.y - centerY;
         forceX += spreadX * spreadStrength;
         forceY += spreadY * spreadStrength;
+
+
+// Soft edge repulsion
+let edgeMargin = 150;
+let edgeForceStrength = 5;
+
+if (this.x < edgeMargin) {
+    forceX += edgeForceStrength * (edgeMargin - this.x) / edgeMargin;
+}
+if (this.x > windowWidth - edgeMargin) {
+    forceX -= edgeForceStrength * (this.x - (windowWidth - edgeMargin)) / edgeMargin;
+}
+if (this.y < edgeMargin) {
+    forceY += edgeForceStrength * (edgeMargin - this.y) / edgeMargin;
+}
+if (this.y > windowHeight - edgeMargin) {
+    forceY -= edgeForceStrength * (this.y - (windowHeight - edgeMargin)) / edgeMargin;
+}
     
         // Apply force to position
 
@@ -156,16 +174,15 @@ class BandNode {
 
 //------------------------ Setup -------------------------------------------------------------------
 function setupDataVis(allPairings, secondaryConnections) {
-
+    
     console.log("Data visualization initialized.");
     let cnv = createCanvas(windowWidth, windowHeight);
     cnv.parent("canvas-container");
 
-    // bands = Object.keys(allPairings).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
 
     bands = Object.keys(allPairings)
-  .filter(band => (counts[band] || 1) > 1)  // Filter only bands with count > 2
-  .map(band => new BandNode(band, Object.keys(allPairings[band]).length));
+    .filter(band => (counts[band] || 1) > 1)  // Filter only bands with count > 2
+    .map(band => new BandNode(band, Object.keys(allPairings[band]).length));
 
     // Define time limit for "applyforces"
     for (let i = 0; i < settleFrames; i++) {
@@ -191,6 +208,7 @@ function setupDataVis(allPairings, secondaryConnections) {
             maxSConnections = max(maxSConnections, secondaryConnections[band][otherBand]);
         }
     }
+
 }
 
 function windowResized() {
@@ -336,6 +354,8 @@ function draw() {
     avoidLabelOverlap(bands);
 
     pop();
+    
 }
+
 
 

@@ -77,6 +77,9 @@ function generatePairings(obj) { //show which artists have played with which oth
     }
     return allPairings;
 }
+
+populate()
+
 //-----------------------------process data for indirect pairings of bands-----------------------------
 //this will show when two artists have both shared a bill with the same artist. Works same way as "generate pairings"
 function generateSecondaryConnections(allPairings) {
@@ -98,7 +101,7 @@ function generateSecondaryConnections(allPairings) {
     return secondaryConnections;
 }
 
-populate();
+
 
 // ---------------------- POPUP FUNCTIONS ----------------------
 
