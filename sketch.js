@@ -1,3 +1,5 @@
+let isP5Ready = false;
+
 let bands = [];
 let maxShows = 1;
 let maxPConnections = 1; 
@@ -177,11 +179,29 @@ if (this.y > windowHeight - edgeMargin) {
 
 //------------------------ Setup -------------------------------------------------------------------
 
+
+
+
+function setup() {
+        let cnv = createCanvas(windowWidth, windowHeight);
+        cnv.parent("canvas-container");
+        isP5Ready = true;
+        zoom = 0.6;  // Set the initial zoom to 60%
+        populate()
+
+      
+        //setupDataVis(allPairings, secondaryConnections);    
+};
 function setupDataVis(allPairings, secondaryConnections) {
+    if (!allPairings || !secondaryConnections) {
+        console.error("setupDataVis: Data not loaded properly.");
+        return;
+    }
+
     
     console.log("Data visualization initialized.");
-    let cnv = createCanvas(windowWidth, windowHeight);
-    cnv.parent("canvas-container");
+    // let cnv = createCanvas(windowWidth, windowHeight);
+    // cnv.parent("canvas-container");
 
     //make it so that the min shows sets how many shows a band needs to show up
     bands = Object.keys(allPairings)
@@ -284,7 +304,7 @@ function mouseDragged() {
 
   
 
-//------------------------------AVOID TEXT OVERLAPS---------------------------------------
+//--------------AVOID TEXT OVERLAPS------------------
 function avoidLabelOverlap(bands) {
     for (let i = 0; i < bands.length; i++) {
       for (let j = i + 1; j < bands.length; j++) {
@@ -320,8 +340,8 @@ function avoidLabelOverlap(bands) {
 }
 
 
-
-//------------------------ Draw -----------------------------
+//---------------------------------------------------------------------------
+//------------------------ Draw ---------------------------------------------
 function draw() {
     background(0);
 

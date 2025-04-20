@@ -9,44 +9,42 @@ let counts = {};
 //--------------------------------------------Import data from JSON file-------------------
 async function populate() {
     try { 
-        const response = await fetch('data.json'); //connect to JSON file
+        const response = await fetch('data.json'); // connect to JSON file
         const shows = await response.json();
 
-           // Count shows per band and store globally
-           counts = countShowsForAllBands(shows);
+        // Count shows per band and store globally
+        counts = countShowsForAllBands(shows);
 
-           // Console log band counts for testing
-           console.log("Show count per band:");
-           Object.entries(counts).forEach(([band, count]) => {
-               console.log(`${band}: ${count}`);
-           });
-  
-           
-           function countShowsForAllBands(data) {
-              const counts = {};
-            
-              data.shows.forEach(show => {
+        function countShowsForAllBands(data) {
+            const counts = {};
+            data.shows.forEach(show => {
                 show.bands.forEach(band => {
-                  if (!counts[band]) {
-                    counts[band] = 0;
-                  }
-                  counts[band]++;
+                    if (!counts[band]) {
+                        counts[band] = 0;
+                    }
+                    counts[band]++;
                 });
-              });
-              return counts;
-            }
-        
-       // populateShows(shows);
+            });
+            return counts;
+        }
+
         allPairings = generatePairings(shows);
         secondaryConnections = generateSecondaryConnections(allPairings);
-       // populatePairings(allPairings, secondaryConnections);
 
-        // Call setupDataVis() once data is ready
-        if (typeof setupDataVis !== "undefined") {
-            setupDataVis(allPairings, secondaryConnections);
-        } else {
-            console.error("setupDataVis is not defined yet!");
-        }
+        // 🟡 Wait until p5 is fully ready before calling BandNode (which uses `map`)
+        const waitForP5 = () => new Promise(resolve => {
+            const check = () => {
+                if (isP5Ready && typeof map === "function") {
+                    resolve();
+                } else {
+                    setTimeout(check, 10);
+                }
+            };
+            check();
+        });
+
+        await waitForP5();
+        setupDataVis(allPairings, secondaryConnections);
 
     } catch (error) {
         console.error("Error loading data:", error);
@@ -78,7 +76,7 @@ function generatePairings(obj) { //show which artists have played with which oth
     return allPairings;
 }
 
-populate()
+//populate()
 
 //-----------------------------process data for indirect pairings of bands-----------------------------
 //this will show when two artists have both shared a bill with the same artist. Works same way as "generate pairings"
