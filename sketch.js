@@ -6,7 +6,7 @@ let maxPConnections = 1;
 let maxSConnections = 1; 
 let selectedBand = null; // Track the selected band
 
-let minShows = 2;
+let minShows = 3;
 let minPairings = 4;
 
 //Set time for magnetism to run. Stop after settleFrames
@@ -14,7 +14,7 @@ let settleFrames = 200;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
 //zoom and pan settings
-let zoom = .5;
+let zoom = 1;
 let offsetX = 0;
 let offsetY = 0;
 let isDragging = false;
@@ -27,14 +27,20 @@ class BandNode {
     constructor(name, numShows) {
         let padding = 200; // Ensures nodes don't get too close to the edges
         this.name = name;
+
+        this.vx = 0;
+        this.vy = 0;
   
         // If numShows is not passed in, look it up from the global counts object
          this.numShows =  counts[name] || 1;
 
         this.size = map(numShows, 1, 10, 10, 50);
 
-        this.x = random(padding, windowWidth - padding);
-        this.y = random(padding, windowHeight - padding);
+        
+
+        this.x = random(-offsetX + padding, (windowWidth - offsetX - padding) / zoom);
+        this.y = random(-offsetY + padding, (windowHeight - offsetY - padding) / zoom);
+        
 
     }
 
@@ -74,9 +80,9 @@ class BandNode {
         let forceX = 0;
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
-        let baseAttractionStrength = .3;  // Base attraction strength
-        let baseRepulsionStrength = 3000;    // Base repulsion strength 
-        let minDistance = 125;               // Minimum distance before repulsion kicks in
+        let baseAttractionStrength = .4;  // Base attraction strength
+        let baseRepulsionStrength = 2000;    // Base repulsion strength 
+        let minDistance = 100;               // Minimum distance before repulsion kicks in
         let spreadStrength = 0.0001;         // Outward spread force to prevent central clustering
         let bufferDistance = 1500            //buffer around each node
     //-----------------------------------------------------------------------------------
@@ -144,14 +150,19 @@ if (this.y > windowHeight - edgeMargin) {
     forceY -= edgeForceStrength * (this.y - (windowHeight - edgeMargin)) / edgeMargin;
 }
     
-        // Apply force to position
+     // Update velocity with damping
+     this.vx = (this.vx + forceX) * 0.5;  // damping factor
+     this.vy = (this.vy + forceY) * 0.5;
 
-        this.x += forceX;
-        this.y += forceY;
-    
-        // Constrain within window bounds with a small margin
+     // Apply velocity
+     this.x += this.vx;
+     this.y += this.vy;
+
+     // Constrain within window bounds with a small margin
         this.x = constrain(this.x, 100, windowWidth - 100);
         this.y = constrain(this.y, 100, windowHeight - 100);
+
+            
     } 
 
     
@@ -198,18 +209,32 @@ function setupDataVis(allPairings, secondaryConnections) {
 
     
     console.log("Data visualization initialized.");
-    // let cnv = createCanvas(windowWidth, windowHeight);
-    // cnv.parent("canvas-container");
 
-    //make it so that the min shows sets how many shows a band needs to show up
-    bands = Object.keys(allPairings)
-    .filter(band => 
-      (counts[band] || 0) >= minShows &&
-      Object.keys(allPairings[band]).length >= minPairings
-    )
-    .map(band => new BandNode(band, Object.keys(allPairings[band]).length));
+//---------------------------Apply min connections threshold
 
-    // Define time limit for "applyforces"
+ // Step 1: Get bands that meet both thresholds
+let qualifiedBands = Object.keys(allPairings).filter(band => 
+    (counts[band] || 0) >= minShows &&
+    Object.keys(allPairings[band] || {}).length >= minPairings
+  );
+  
+// Step 2: Filter to only keep bands connected (via primary or secondary) to at least TWO other qualified bands
+bands = qualifiedBands.filter(band => {
+    let primaryConnections = Object.keys(allPairings[band] || {});
+    let secondaryConnectionsForBand = Object.keys(secondaryConnections[band] || {});
+    let allConnections = [...new Set([...primaryConnections, ...secondaryConnectionsForBand])];
+  
+    // Count how many of those connections are to other qualified bands
+    let qualifiedConnectionsCount = allConnections.filter(conn => qualifiedBands.includes(conn)).length;
+  
+    return qualifiedConnectionsCount >= 2;
+  }).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
+  
+
+
+
+
+  //---------------------- Define time limit for "applyforces"
     for (let i = 0; i < settleFrames; i++) {
     for (let band of bands) {
         band.applyForces();
@@ -370,14 +395,6 @@ function draw() {
         }
         currentFrame++;
     }
-
-  
-    // // Draw label nodes last so they render on top
-    // for (let band of bands) {
-    //     if (band instanceof LabelNode) {
-    //         band.display();
-    //     }
-    // }
 
     avoidLabelOverlap(bands);
 
