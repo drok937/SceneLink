@@ -14,7 +14,7 @@ let settleFrames = 200;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
 //zoom and pan settings
-let zoom = 1;
+let zoom = .5;
 let offsetX = 0;
 let offsetY = 0;
 let isDragging = false;
@@ -186,11 +186,9 @@ function setup() {
         let cnv = createCanvas(windowWidth, windowHeight);
         cnv.parent("canvas-container");
         isP5Ready = true;
-        zoom = 0.6;  // Set the initial zoom to 60%
+        //zoom = 0.6;  // Set the initial zoom to 60%
         populate()
-
-      
-        //setupDataVis(allPairings, secondaryConnections);    
+  
 };
 function setupDataVis(allPairings, secondaryConnections) {
     if (!allPairings || !secondaryConnections) {
