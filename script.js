@@ -18,16 +18,20 @@ async function populate() {
         function countShowsForAllBands(data) {
             const counts = {};
             data.shows.forEach(show => {
-                show.bands.forEach(band => {
-                    if (!counts[band]) {
-                        counts[band] = 0;
-                    }
-                    counts[band]++;
-                });
+                // Check if show.bands is an array before calling .forEach
+                if (Array.isArray(show.bands)) {
+                    show.bands.forEach(band => {
+                        if (!counts[band]) {
+                            counts[band] = 0;
+                        }
+                        counts[band]++;
+                    });
+                } else {
+                    console.warn('show.bands is not an array:', show.bands);
+                }
             });
             return counts;
         }
-
         allPairings = generatePairings(shows);
         secondaryConnections = generateSecondaryConnections(allPairings);
 

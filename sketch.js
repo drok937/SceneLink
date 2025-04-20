@@ -6,8 +6,8 @@ let maxPConnections = 1;
 let maxSConnections = 1; 
 let selectedBand = null; // Track the selected band
 
-let minShows = 3;
-let minPairings = 4;
+let minShows = 4;
+let minPairings = 2;
 
 //Set time for magnetism to run. Stop after settleFrames
 let settleFrames = 300;  // Number of frames before movement stops
@@ -34,7 +34,7 @@ class BandNode {
         // If numShows is not passed in, look it up from the global counts object
          this.numShows =  counts[name] || 1;
 
-        this.size = map(numShows, 1, 10, 10, 50);
+        this.size = map(numShows, 1, 10, 1, 20);
 
         
 
@@ -81,8 +81,8 @@ class BandNode {
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
         let baseAttractionStrength = .4;  // Base attraction strength
-        let baseRepulsionStrength = 2000;    // Base repulsion strength 
-        let minDistance = 100;               // Minimum distance before repulsion kicks in
+        let baseRepulsionStrength = 2500;    // Base repulsion strength 
+        let minDistance = 150;               // Minimum distance before repulsion kicks in
         let spreadStrength = 0.0001;         // Outward spread force to prevent central clustering
         let bufferDistance = 1500            //buffer around each node
     //-----------------------------------------------------------------------------------
