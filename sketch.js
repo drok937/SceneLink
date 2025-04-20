@@ -4,6 +4,9 @@ let maxPConnections = 1;
 let maxSConnections = 1; 
 let selectedBand = null; // Track the selected band
 
+let minShows = 2;
+let minPairings = 4;
+
 //Set time for magnetism to run. Stop after settleFrames
 let settleFrames = 200;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
@@ -42,7 +45,7 @@ class BandNode {
                     let otherBandNode = bands.find(b => b.name === otherBand);
                     if (otherBandNode) {
                         stroke(255, 0, 0, 50); // Red color
-                        strokeWeight(map(secondaryConnections[this.name][otherBand], 1, maxSConnections, .5, 4, true)); 
+                        strokeWeight(map(secondaryConnections[this.name][otherBand], 1, maxSConnections, 1, 10, true)); 
                         line(this.x, this.y, otherBandNode.x, otherBandNode.y);
                     }
                 }
@@ -69,10 +72,10 @@ class BandNode {
         let forceX = 0;
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
-        let baseAttractionStrength = .1;  // Base attraction strength
-        let baseRepulsionStrength = 2000;    // Base repulsion strength 
+        let baseAttractionStrength = .3;  // Base attraction strength
+        let baseRepulsionStrength = 3000;    // Base repulsion strength 
         let minDistance = 125;               // Minimum distance before repulsion kicks in
-        let spreadStrength = 0.000;         // Outward spread force to prevent central clustering
+        let spreadStrength = 0.0001;         // Outward spread force to prevent central clustering
         let bufferDistance = 1500            //buffer around each node
     //-----------------------------------------------------------------------------------
         for (let otherBand of bands) {
@@ -123,8 +126,8 @@ class BandNode {
 
 
 // Soft edge repulsion
-let edgeMargin = 150;
-let edgeForceStrength = 5;
+let edgeMargin = 250;
+let edgeForceStrength = 10;
 
 if (this.x < edgeMargin) {
     forceX += edgeForceStrength * (edgeMargin - this.x) / edgeMargin;
@@ -173,15 +176,19 @@ if (this.y > windowHeight - edgeMargin) {
 }
 
 //------------------------ Setup -------------------------------------------------------------------
+
 function setupDataVis(allPairings, secondaryConnections) {
     
     console.log("Data visualization initialized.");
     let cnv = createCanvas(windowWidth, windowHeight);
     cnv.parent("canvas-container");
 
-
+    //make it so that the min shows sets how many shows a band needs to show up
     bands = Object.keys(allPairings)
-    .filter(band => (counts[band] || 1) > 1)  // Filter only bands with count > 2
+    .filter(band => 
+      (counts[band] || 0) >= minShows &&
+      Object.keys(allPairings[band]).length >= minPairings
+    )
     .map(band => new BandNode(band, Object.keys(allPairings[band]).length));
 
     // Define time limit for "applyforces"
@@ -210,6 +217,7 @@ function setupDataVis(allPairings, secondaryConnections) {
     }
 
 }
+
 
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
@@ -269,6 +277,8 @@ function mouseDragged() {
     offsetY = mouseY - (mouseY - offsetY) * zoomFactor;
   
     zoom = newZoom;
+
+    
     return false; // Prevent page scroll
   }
 
