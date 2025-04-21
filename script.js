@@ -153,14 +153,35 @@ function showPopup(bandName) {
            <ul>${topConnectionsList}</ul>
        </div>
    </div>
+   <div id="mini-canvas-container"></div> <!-- this is where the graph will go -->
 `;
 
 popup.style.display = "block";
+
+ // Remove existing mini sketch (if one is running)
+ if (window.myMiniSketch) {
+    window.myMiniSketch.remove();
+    window.myMiniSketch = null;
+
+}
+
+ // Create new mini sketch and pass in the band name
+ window.myMiniSketch = new p5(miniSketch, "mini-canvas-container");
+ setTimeout(() => {
+     if (window.myMiniSketch.setupMiniGraph) {
+         window.myMiniSketch.setupMiniGraph(bandName);
+     }
+ }, 50);
 }
 
 function closePopup() {
     let popup = document.getElementById("popup");
     popup.style.display = "none";
+
+    if (window.myMiniSketch) {
+        window.myMiniSketch.remove();
+        window.myMiniSketch = null;
+    }
 }
 
 // Close the popup when clicking outside

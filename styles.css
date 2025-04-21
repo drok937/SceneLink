@@ -37,17 +37,22 @@ h1 {
     padding: 20px;
     border-radius: 10px;
     text-align: center;
-    width: 500px;
+    width: 500px;  /* This is the width of the popup */
 }
 
+#mini-canvas-container {
+    width: 100%;  /* Set the width to 100% of the parent, which is the popup */
+    height: 400px;
+    border: 1px solid red;
+}
 
 ul {
-    list-style-type: none;        /* Remove default list styles */
+    list-style-type: none;        
     padding: 0;
     margin: 0;
 }
 
 li {
-    padding: 5px 0;               /* Add space between list items */
+    padding: 5px 0;              
 }
 

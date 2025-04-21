@@ -260,17 +260,6 @@ bands = qualifiedBands.filter(band => {
 
 }
 
-
-// function windowResized() {
-//     resizeCanvas(windowWidth, windowHeight);
-
-//     // Reposition nodes to stay within bounds
-//     for (let band of bands) {
-//         band.x = constrain(band.x, 50, windowWidth - 50);
-//         band.y = constrain(band.y, 55, windowHeight - 50);
-//     }
-// }
-
 console.log("Simulation settled after " + settleFrames + " frames.");
 
 //-------------------------------MOUSE PRESSED---------------------------------------
