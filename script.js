@@ -106,6 +106,25 @@ function generateSecondaryConnections(allPairings) {
 
 
 // ---------------------- POPUP FUNCTIONS ----------------------
+function getTopConnections(bandName, topN = 10) {
+    let connections = [];
+
+    for (let otherName in allPairings[bandName]) {
+        if (otherName === bandName) continue;
+
+        let primaryStrength = (allPairings[bandName]?.[otherName] || 0) / 2;
+        let secondaryStrength = (secondaryConnections[bandName]?.[otherName] || 0) / 3;
+        let connectionStrength = primaryStrength + secondaryStrength;
+
+        connections.push({ name: otherName, strength: connectionStrength });
+    }
+
+    // Sort by connection strength descending
+    connections.sort((a, b) => b.strength - a.strength);
+
+    // Return top N
+    return connections.slice(0, topN);
+}
 
 function showPopup(bandName) {
     let popup = document.getElementById("popup");
@@ -116,39 +135,28 @@ function showPopup(bandName) {
         return;
     }
 
-    // Ensure the band has primary connections before looping
-    let primaryConnectionsList = "";
-    if (allPairings[bandName]) {
-        primaryConnectionsList = Object.keys(allPairings[bandName])
-            .map(otherBand => `<li>${otherBand} (${allPairings[bandName][otherBand]})</li>`)
-            .join("");
-    };
+    // Get the top 10 strongest connections using your combined metric
+    let topConnections = getTopConnections(bandName, 10); // <-- uses your helper function
 
-    if (secondaryConnections[bandName]) {
-        secondaryConnectionsList = Object.keys(secondaryConnections[bandName])
-            .map(otherBand => `<li>${otherBand} (${secondaryConnections[bandName][otherBand]})</li>`)
-            .join("");
-        };
+    let topConnectionsList = topConnections.length > 0
+        ? topConnections.map(conn => `<li>${conn.name} </li>`).join("")
+        : "<li>No strong connections</li>";
+
     
-    // Inject the content into the popup
-    popupContent.innerHTML = `
-        <h2>${bandName}</h2>
-        <p>Details about ${bandName}.</p>
-        <p>Show Count: ${counts[bandName] || 0}</p>
-            <div class="connections-container">
-                <div class="connections-list">
-                    <h3>Primary Connections:</h3>
-                    <ul>${primaryConnectionsList || "<li>No primary connections</li>"}</ul>
-                </div>
-                <div class="connections-list">
-                    <h3>Secondary Connections:</h3>
-                    <ul>${secondaryConnectionsList || "<li>No secondary connections</li>"}</ul>
-                </div>
-            </div>
-    `;
+   // Inject the content into the popup
+   popupContent.innerHTML = `
+   <h2>${bandName}</h2>
+   <p>Show Count: ${counts[bandName] || 0}</p>
+   <div class="connections-container">
+       <div class="connections-list">
+           <h3>Top Connections:</h3>
+           <ul>${topConnectionsList}</ul>
+       </div>
+   </div>
+`;
 
-    popup.style.display = "block";
-};
+popup.style.display = "block";
+}
 
 function closePopup() {
     let popup = document.getElementById("popup");

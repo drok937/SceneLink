@@ -10,7 +10,7 @@ let minShows = 4;
 let minPairings = 2;
 
 //Set time for magnetism to run. Stop after settleFrames
-let settleFrames = 350;  // Number of frames before movement stops
+let settleFrames = 600;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
 //zoom and pan settings

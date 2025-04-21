@@ -6,7 +6,6 @@ body {
     overflow: hidden; /* Prevent scrolling */
 }
 
-
 h1 {
     margin-left: 40px;
     margin-right: 40px;
@@ -18,8 +17,6 @@ h1 {
     background-color: rgba(0, 40, 0, 5); 
     border-radius: 8px; 
   }
-
-
 
 .popup {
     display: none;
@@ -43,16 +40,6 @@ h1 {
     width: 500px;
 }
 
-
-.connections-container {
-    display: flex;               
-    justify-content: space-between; /* Optional: to spread out the two lists */
-    gap: 20px;                    /* Optional: space between the two lists */
-}
-
-.connections-list {
-    width: 48%;                   /* Ensure each list takes up roughly half the container width */
-}
 
 ul {
     list-style-type: none;        /* Remove default list styles */
