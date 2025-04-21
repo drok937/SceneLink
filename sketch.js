@@ -38,8 +38,8 @@ class BandNode {
 
         
 
-        this.x = random(-offsetX + padding, (windowWidth - offsetX - padding) / zoom);
-        this.y = random(-offsetY + padding, (windowHeight - offsetY - padding) / zoom);
+        this.x = random(-offsetX + padding, windowWidth - offsetX - padding);
+        this.y = random(-offsetY + padding, windowHeight - offsetY - padding);
         
 
     }
@@ -84,7 +84,9 @@ class BandNode {
         let baseRepulsionStrength = 2500;    // Base repulsion strength 
         let minDistance = 150;               // Minimum distance before repulsion kicks in
         let spreadStrength = 0.0001;         // Outward spread force to prevent central clustering
-        let bufferDistance = 1500            //buffer around each node
+        let bufferDistance = 1000;            //buffer around each node
+        let edgeMargin = 200;
+        let edgeForceStrength = 20;
     //-----------------------------------------------------------------------------------
         for (let otherBand of bands) {
             if (otherBand === this) continue; // Skip self
@@ -133,34 +135,33 @@ class BandNode {
         forceY += spreadY * spreadStrength;
 
 
-// Soft edge repulsion
-let edgeMargin = 250;
-let edgeForceStrength = 10;
+        // Soft edge repulsion
 
-if (this.x < edgeMargin) {
-    forceX += edgeForceStrength * (edgeMargin - this.x) / edgeMargin;
-}
-if (this.x > windowWidth - edgeMargin) {
-    forceX -= edgeForceStrength * (this.x - (windowWidth - edgeMargin)) / edgeMargin;
-}
-if (this.y < edgeMargin) {
-    forceY += edgeForceStrength * (edgeMargin - this.y) / edgeMargin;
-}
-if (this.y > windowHeight - edgeMargin) {
-    forceY -= edgeForceStrength * (this.y - (windowHeight - edgeMargin)) / edgeMargin;
-}
+
+        if (this.x < edgeMargin) {
+        forceX += edgeForceStrength * (edgeMargin - this.x) / edgeMargin;
+        }
+        if (this.x > windowWidth - edgeMargin) {
+        forceX -= edgeForceStrength * (this.x - (windowWidth - edgeMargin)) / edgeMargin;
+        }
+        if (this.y < edgeMargin) {
+        forceY += edgeForceStrength * (edgeMargin - this.y) / edgeMargin;
+        }
+        if (this.y > windowHeight - edgeMargin) {
+        forceY -= edgeForceStrength * (this.y - (windowHeight - edgeMargin)) / edgeMargin;
+        }
     
-     // Update velocity with damping
-     this.vx = (this.vx + forceX) * 0.5;  // damping factor
-     this.vy = (this.vy + forceY) * 0.5;
+        // Update velocity with damping
+        this.vx = (this.vx + forceX) * 0.4;  // damping factor
+        this.vy = (this.vy + forceY) * 0.4;
 
-     // Apply velocity
-     this.x += this.vx;
-     this.y += this.vy;
+        // Apply velocity
+        this.x += this.vx;
+        this.y += this.vy;
 
-     // Constrain within window bounds with a small margin
-        this.x = constrain(this.x, 100, windowWidth - 100);
-        this.y = constrain(this.y, 100, windowHeight - 100);
+    //  // Constrain within window bounds with a small margin
+    //     this.x = constrain(this.x, 100, windowWidth - 100);
+    //     this.y = constrain(this.y, 100, windowHeight - 100);
 
             
     } 
@@ -172,7 +173,7 @@ if (this.y > windowHeight - edgeMargin) {
         fill(0, 200, 0);
         ellipse(this.x, this.y, this.size * 0.5, this.size * 0.5);
 
-        let textSizeScaled = map(Object.keys(allPairings[this.name]).length, 1, maxShows, 10, 30);
+        let textSizeScaled = map(Object.keys(allPairings[this.name]).length, 3, maxShows, 8, 20);
         stroke(0);
         strokeWeight(2.5);
         textAlign(CENTER);
@@ -194,10 +195,9 @@ if (this.y > windowHeight - edgeMargin) {
 
 
 function setup() {
-        let cnv = createCanvas(windowWidth, windowHeight);
-        cnv.parent("canvas-container");
+        createCanvas(windowWidth * zoom, windowHeight * zoom);
+        //cnv.parent("canvas-container");
         isP5Ready = true;
-        //zoom = 0.6;  // Set the initial zoom to 60%
         populate()
   
 };
@@ -228,11 +228,8 @@ bands = qualifiedBands.filter(band => {
     let qualifiedConnectionsCount = allConnections.filter(conn => qualifiedBands.includes(conn)).length;
   
     return qualifiedConnectionsCount >= 2;
-  }).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
+    }).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
   
-
-
-
 
   //---------------------- Define time limit for "applyforces"
     for (let i = 0; i < settleFrames; i++) {
@@ -262,15 +259,15 @@ bands = qualifiedBands.filter(band => {
 }
 
 
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+// function windowResized() {
+//     resizeCanvas(windowWidth, windowHeight);
 
-    // Reposition nodes to stay within bounds
-    for (let band of bands) {
-        band.x = constrain(band.x, 50, windowWidth - 50);
-        band.y = constrain(band.y, 55, windowHeight - 50);
-    }
-}
+//     // Reposition nodes to stay within bounds
+//     for (let band of bands) {
+//         band.x = constrain(band.x, 50, windowWidth - 50);
+//         band.y = constrain(band.y, 55, windowHeight - 50);
+//     }
+// }
 
 console.log("Simulation settled after " + settleFrames + " frames.");
 
@@ -320,7 +317,6 @@ function mouseDragged() {
     offsetY = mouseY - (mouseY - offsetY) * zoomFactor;
   
     zoom = newZoom;
-
     
     return false; // Prevent page scroll
   }
