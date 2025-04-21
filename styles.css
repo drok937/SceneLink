@@ -6,14 +6,6 @@ body {
     overflow: hidden; /* Prevent scrolling */
 }
 
-#canvas-container {
-    position: absolute;
-    top: 50px; /* Adjust based on your h1 height */
-    left: 0;
-    width: 100%;
-    height: calc(100vh - 50px); /* Ensure it fits within the viewport */
-    overflow: hidden; /* Prevent scrollbars */
-}
 
 h1 {
     margin-left: 40px;

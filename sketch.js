@@ -10,7 +10,7 @@ let minShows = 4;
 let minPairings = 2;
 
 //Set time for magnetism to run. Stop after settleFrames
-let settleFrames = 300;  // Number of frames before movement stops
+let settleFrames = 350;  // Number of frames before movement stops
 let currentFrame = 0;    // Counter for frames
 
 //zoom and pan settings
@@ -82,9 +82,9 @@ class BandNode {
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
         let baseAttractionStrength = .4;  // Base attraction strength
         let baseRepulsionStrength = 2500;    // Base repulsion strength 
-        let minDistance = 150;               // Minimum distance before repulsion kicks in
+        let minDistance = 200;               // Minimum distance before repulsion kicks in
         let spreadStrength = 0.0001;         // Outward spread force to prevent central clustering
-        let bufferDistance = 1000;            //buffer around each node
+        let bufferDistance = 1500;            //buffer around each node
         let edgeMargin = 200;
         let edgeForceStrength = 20;
     //-----------------------------------------------------------------------------------
@@ -159,10 +159,6 @@ class BandNode {
         this.x += this.vx;
         this.y += this.vy;
 
-    //  // Constrain within window bounds with a small margin
-    //     this.x = constrain(this.x, 100, windowWidth - 100);
-    //     this.y = constrain(this.y, 100, windowHeight - 100);
-
             
     } 
 
@@ -206,7 +202,13 @@ function setupDataVis(allPairings, secondaryConnections) {
         console.error("setupDataVis: Data not loaded properly.");
         return;
     }
-
+ // Apply forces during settling frames. THIS CAN BE MOVED TO DRAW LOOP TO SEE FORCES
+ if (currentFrame < settleFrames) {
+    for (let band of bands) {
+        band.applyForces();
+    }
+    currentFrame++;
+}
     
     console.log("Data visualization initialized.");
 
@@ -383,14 +385,9 @@ function draw() {
         }
     }
 
+    //can add applyForces here if you want them to render in real time
 
-    // Apply forces during settling frames
-    if (currentFrame < settleFrames) {
-        for (let band of bands) {
-            band.applyForces();
-        }
-        currentFrame++;
-    }
+   
 
     avoidLabelOverlap(bands);
 
