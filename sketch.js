@@ -188,8 +188,6 @@ class BandNode {
 //------------------------ Setup -------------------------------------------------------------------
 
 
-
-
 function setup() {
         createCanvas(windowWidth * zoom, windowHeight * zoom);
         //cnv.parent("canvas-container");

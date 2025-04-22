@@ -12,7 +12,7 @@ const miniSketch = (p) => {
   };
 
   p.draw = function () {
-    p.background(0);
+    p.background(229, 115, 115);
 
     if (!miniNodes.length) return;
 
@@ -33,8 +33,8 @@ const miniSketch = (p) => {
       if (other === node) continue;
       let strength = allPairings[node.name]?.[other.name] || 0;
       strength += secondaryConnections[node.name]?.[other.name] || 0;
-      if (strength > 0) {
-        p.stroke(255, 0, 0, 50);
+      if (strength > .5) {
+        p.stroke(0, 0, 0, 50);
         p.strokeWeight(p.map(strength, 1, 10, 1, 4));
         p.line(node.x, node.y, other.x, other.y);
       }
