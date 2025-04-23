@@ -12,6 +12,21 @@ async function populate() {
         const response = await fetch('data.json'); // connect to JSON file
         const shows = await response.json();
 
+        const uniqueShows = [];
+        const seen = new Set();
+
+        // Filter duplicates
+        shows.shows.forEach(show => {
+         if (!show.date || !Array.isArray(show.bands)) return; // basic sanity check
+
+         // Build a unique key based on date and sorted band lineup
+        const key = `${show.date}::${show.bands.slice().sort().join(',')}`;
+
+             if (!seen.has(key)) {
+             seen.add(key);
+            uniqueShows.push(show);
+            }
+        });
         // Count shows per band and store globally
         counts = countShowsForAllBands(shows);
 
