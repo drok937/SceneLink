@@ -27,32 +27,37 @@ class BandNode {
     constructor(name, numShows) {
         let padding = 200; // Ensures nodes don't get too close to the edges
         this.name = name;
-
         this.vx = 0;
         this.vy = 0;
-  
-        // If numShows is not passed in, look it up from the global counts object
-         this.numShows =  counts[name] || 1;
 
+        // look up the number of shows a band has played and map that to the size of the node
+        this.numShows =  counts[name] || 1;
         this.size = map(numShows, 1, 10, 1, 20);
 
-        
-
-        this.x = random(-offsetX + padding, windowWidth - offsetX - padding);
-        this.y = random(-offsetY + padding, windowHeight - offsetY - padding);
-        
+        //Distribute the nodes evenly across the campus randomly (pre-magnetism)
+        // this.x = random(-offsetX + padding, windowWidth - offsetX - padding);
+        // this.y = random(-offsetY + padding, windowHeight - offsetY - padding);
+        this.x = random(
+            (-offsetX + padding) / zoom,
+            (windowWidth - offsetX - padding) / zoom
+          );
+          this.y = random(
+            (-offsetY + padding) / zoom,
+            (windowHeight - offsetY - padding) / zoom
+          );
 
     }
 
     drawConnections() {
         // Draw secondary connections (Red)
         if (secondaryConnections[this.name]) {
-            // If it's an object (with keys representing connected bands)
+            // But only if it's an object (with keys representing connected bands)
             if (typeof secondaryConnections[this.name] === 'object') {
                 for (let otherBand in secondaryConnections[this.name]) {
                     let otherBandNode = bands.find(b => b.name === otherBand);
                     if (otherBandNode) {
                         stroke(255, 0, 0, 50); // Red color
+                        //map the stroke of the line to the strength of the connection
                         strokeWeight(map(secondaryConnections[this.name][otherBand], 1, maxSConnections, 1, 10, true)); 
                         line(this.x, this.y, otherBandNode.x, otherBandNode.y);
                     }
@@ -68,6 +73,7 @@ class BandNode {
                 let otherBandNode = bands.find(b => b.name === otherBand);
                 if (otherBandNode) {
                     stroke(200, 250); // White with some transparency
+                    //map stroke weight to the strength of connection
                     strokeWeight(map(allPairings[this.name][otherBand], 1, maxPConnections, 1, 6, true));
                     line(this.x, this.y, otherBandNode.x, otherBandNode.y);
                 }
@@ -81,12 +87,12 @@ class BandNode {
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
         let baseAttractionStrength = .4;  // Base attraction strength
-        let baseRepulsionStrength = 2500;    // Base repulsion strength 
+        let baseRepulsionStrength = 4500;    // Base repulsion strength 
         let minDistance = 200;               // Minimum distance before repulsion kicks in
-        let spreadStrength = 0.0001;         // Outward spread force to prevent central clustering
-        let bufferDistance = 1500;            //buffer around each node
-        let edgeMargin = 200;
-        let edgeForceStrength = 20;
+        let spreadStrength = 0.0001;         // Outward spread force (from center) to prevent central clustering
+        let bufferDistance = 3000;            //buffer around each node
+        let edgeMargin = 200;                 //where edge force starts kicking
+        let edgeForceStrength = 30;           //power of edge force to prevent clusters around edges
     //-----------------------------------------------------------------------------------
         for (let otherBand of bands) {
             if (otherBand === this) continue; // Skip self
@@ -98,23 +104,23 @@ class BandNode {
             //avoid dividing by 0
             if (distance < 1) distance = 1; // Avoid division by zero
             
-            //sets variable for how many times band has played together
+            //sets force variable for how many times band has played together
             // change denominators to alter ratio of primary to seconary connection strength
-            let primaryStrength = allPairings[this.name]?.[otherBand.name] / 2  || 0;
-            let secondaryStrength = (secondaryConnections[this.name]?.[otherBand.name] || 0) / 3;
+            let primaryStrength = allPairings[this.name]?.[otherBand.name] / 1  || 0;
+            let secondaryStrength = (secondaryConnections[this.name]?.[otherBand.name] || 0) / 2;
             let connectionStrength = primaryStrength + secondaryStrength;
 
             let isConnected = connectionStrength > 0;
           
             if (isConnected) {
-                // Scale attraction based on primary connection strength
+                // Scale attraction based on connection strength
                 let attractionStrength = baseAttractionStrength * connectionStrength;
                 let attractionForce = attractionStrength * (distance - minDistance);
                 forceX += attractionForce * (dx / distance);
                 forceY += attractionForce * (dy / distance);
             } 
 
-            //keep it within bounds of the canvas
+            // //keep it within bounds of the canvas
             if (distance < bufferDistance) {
                 let repulsionForce = baseRepulsionStrength / (distance * distance);
                     let overlapFactor = (bufferDistance - distance) / bufferDistance;
@@ -136,7 +142,6 @@ class BandNode {
 
 
         // Soft edge repulsion
-
 
         if (this.x < edgeMargin) {
         forceX += edgeForceStrength * (edgeMargin - this.x) / edgeMargin;
@@ -168,7 +173,7 @@ class BandNode {
         noStroke();
         fill(0, 200, 0);
         ellipse(this.x, this.y, this.size * 0.5, this.size * 0.5);
-
+    
         let textSizeScaled = map(Object.keys(allPairings[this.name]).length, 3, maxShows, 8, 20);
         stroke(0);
         strokeWeight(2.5);
@@ -188,13 +193,20 @@ class BandNode {
 //------------------------ Setup -------------------------------------------------------------------
 
 
-
-
 function setup() {
-        createCanvas(windowWidth * zoom, windowHeight * zoom);
-        //cnv.parent("canvas-container");
+        createCanvas(windowWidth, windowHeight);
         isP5Ready = true;
         populate()
+        
+        // Apply forces during settling frames. THIS CAN BE MOVED TO DRAW LOOP TO SEE FORCES
+        if (currentFrame < settleFrames) {
+        for (let band of bands) {
+            band.applyForces();
+            avoidLabelOverlap(bands);
+        }
+        currentFrame++;
+    }
+    
   
 };
 function setupDataVis(allPairings, secondaryConnections) {
@@ -202,13 +214,8 @@ function setupDataVis(allPairings, secondaryConnections) {
         console.error("setupDataVis: Data not loaded properly.");
         return;
     }
- // Apply forces during settling frames. THIS CAN BE MOVED TO DRAW LOOP TO SEE FORCES
- if (currentFrame < settleFrames) {
-    for (let band of bands) {
-        band.applyForces();
-    }
-    currentFrame++;
-}
+ 
+
     
     console.log("Data visualization initialized.");
 
@@ -349,7 +356,7 @@ function avoidLabelOverlap(bands) {
       let d = sqrt(dx * dx + dy * dy);
 
       if (d < minDist && d > 0.01) {
-        let push = (minDist - d) * 0.0001;
+        let push = (minDist - d) * 0.003; // change this multiplier to create more space between bands
         let angle = atan2(dy, dx);
         a.x -= cos(angle) * push;
         a.y -= sin(angle) * push;
@@ -389,7 +396,6 @@ function draw() {
 
    
 
-    avoidLabelOverlap(bands);
 
     pop();
     
