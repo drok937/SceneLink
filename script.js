@@ -14,7 +14,6 @@ async function populate() {
         const response = await fetch('data.json'); // connect to JSON file
         const shows = await response.json();
 
-<<<<<<< Updated upstream
         const uniqueShows = [];
         const seen = new Set();
 
@@ -30,10 +29,6 @@ async function populate() {
             uniqueShows.push(show);
             }
         });
-=======
-
-        
->>>>>>> Stashed changes
         // Count shows per band and store globally
         counts = countShowsForAllBands(shows);
 
