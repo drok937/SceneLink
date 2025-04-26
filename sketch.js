@@ -4,13 +4,13 @@ let bands = [];
 let maxShows = 1;
 let maxPConnections = 1; 
 let maxSConnections = 1; 
-let selectedBand = null; // Track the selected band
+let selectedBand = null; 
 
-let minShows = 4;
-let minPairings = 2;
+let minShows = 4; // Alters number of shows a band needs to play to show up on the map
+let minPairings = 2; // atlers the number of connections a band needs to show up on map
 
 //Set time for magnetism to run. Stop after settleFrames
-let settleFrames = 600;  // Number of frames before movement stops
+let settleFrames = 700;  // Number of frames before movement stops. Higher num = more latency better spread
 let currentFrame = 0;    // Counter for frames
 
 //zoom and pan settings
@@ -20,12 +20,14 @@ let offsetY = 0;
 let isDragging = false;
 let dragStartX, dragStartY;
 
+/*------------------------------------------------------------------------------------------------
+                     ||Build BandNode Class||
+---------------------------------------------------------------------------------------------------*/
 
-//-----------------------Build class for each band node--------------------------------------------
 class BandNode {
     
     constructor(name, numShows) {
-        let padding = 200; // Ensures nodes don't get too close to the edges
+        let padding = 200; // 10 percent Ensures nodes don't get too close to the edges
         this.name = name;
         this.vx = 0;
         this.vy = 0;
@@ -35,17 +37,16 @@ class BandNode {
         this.size = map(numShows, 1, 10, 1, 20);
 
         //Distribute the nodes evenly across the campus randomly (pre-magnetism)
-        // this.x = random(-offsetX + padding, windowWidth - offsetX - padding);
-        // this.y = random(-offsetY + padding, windowHeight - offsetY - padding);
-        this.x = random(
-            (-offsetX + padding) / zoom,
-            (windowWidth - offsetX - padding) / zoom
-          );
-          this.y = random(
-            (-offsetY + padding) / zoom,
-            (windowHeight - offsetY - padding) / zoom
-          );
+        this.x = random(-offsetX + padding, windowWidth - offsetX - padding);
+        this.y = random(-offsetY + padding, windowHeight - offsetY - padding);
+       
+       
+       //not working yet, this will replace the this.x =, this.y = above.
+        // let paddingX = windowWidth * padding;
+        // let paddingY = windowHeight * padding;
 
+        // this.x = random(paddingX, windowWidth - paddingX);
+        // this.y = random(paddingY, windowHeight - paddingY);
     }
 
     drawConnections() {
@@ -57,6 +58,7 @@ class BandNode {
                     let otherBandNode = bands.find(b => b.name === otherBand);
                     if (otherBandNode) {
                         stroke(255, 0, 0, 50); // Red color
+                       
                         //map the stroke of the line to the strength of the connection
                         strokeWeight(map(secondaryConnections[this.name][otherBand], 1, maxSConnections, 1, 10, true)); 
                         line(this.x, this.y, otherBandNode.x, otherBandNode.y);
@@ -73,6 +75,7 @@ class BandNode {
                 let otherBandNode = bands.find(b => b.name === otherBand);
                 if (otherBandNode) {
                     stroke(200, 250); // White with some transparency
+                    
                     //map stroke weight to the strength of connection
                     strokeWeight(map(allPairings[this.name][otherBand], 1, maxPConnections, 1, 6, true));
                     line(this.x, this.y, otherBandNode.x, otherBandNode.y);
@@ -86,13 +89,13 @@ class BandNode {
         let forceX = 0;
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
-        let baseAttractionStrength = .4;  // Base attraction strength
+        let baseAttractionStrength = .5;  // Base attraction strength
         let baseRepulsionStrength = 4500;    // Base repulsion strength 
-        let minDistance = 200;               // Minimum distance before repulsion kicks in
+        let minDistance = 100;               // Minimum distance before repulsion kicks in
         let spreadStrength = 0.0001;         // Outward spread force (from center) to prevent central clustering
-        let bufferDistance = 3000;            //buffer around each node
-        let edgeMargin = 200;                 //where edge force starts kicking
-        let edgeForceStrength = 30;           //power of edge force to prevent clusters around edges
+        let bufferDistance = 5000;            //buffer around each node
+        let edgeMargin = 150;                 //where edge force starts kicking
+        let edgeForceStrength = 50;           //power of edge force to prevent clusters around edges
     //-----------------------------------------------------------------------------------
         for (let otherBand of bands) {
             if (otherBand === this) continue; // Skip self
@@ -106,8 +109,8 @@ class BandNode {
             
             //sets force variable for how many times band has played together
             // change denominators to alter ratio of primary to seconary connection strength
-            let primaryStrength = allPairings[this.name]?.[otherBand.name] / 1  || 0;
-            let secondaryStrength = (secondaryConnections[this.name]?.[otherBand.name] || 0) / 2;
+            let primaryStrength = allPairings[this.name]?.[otherBand.name] / 2  || 0;
+            let secondaryStrength = (secondaryConnections[this.name]?.[otherBand.name] || 0) / 3;
             let connectionStrength = primaryStrength + secondaryStrength;
 
             let isConnected = connectionStrength > 0;
@@ -167,8 +170,10 @@ class BandNode {
             
     } 
 
-    
-//---------------------------------NODE VISUALS----------------------------------------
+/*------------------------------------------------------------------------------------------------
+                     ||Node Visuals||
+---------------------------------------------------------------------------------------------------*/    
+
     display() {
         noStroke();
         fill(0, 200, 0);
@@ -189,11 +194,12 @@ class BandNode {
     }
   
 }
-
-//------------------------ Setup -------------------------------------------------------------------
-
+/*------------------------------------------------------------------------
+                     ||Setup||
+--------------------------------------------------------------------------*/
 
 function setup() {
+     // createCanvas(windowWidth / zoom, windowHeight / zoom);
         createCanvas(windowWidth, windowHeight);
         isP5Ready = true;
         populate()
@@ -209,32 +215,34 @@ function setup() {
     
   
 };
+
+/*------------------------------------------------------------------------
+                     ||Data Vis settings||
+--------------------------------------------------------------------------*/
 function setupDataVis(allPairings, secondaryConnections) {
     if (!allPairings || !secondaryConnections) {
         console.error("setupDataVis: Data not loaded properly.");
         return;
     }
  
-
-    
     console.log("Data visualization initialized.");
 
-//---------------------------Apply min connections threshold
+    //---------------------------Apply min connections threshold
 
- // Step 1: Get bands that meet both thresholds
-let qualifiedBands = Object.keys(allPairings).filter(band => 
-    (counts[band] || 0) >= minShows &&
-    Object.keys(allPairings[band] || {}).length >= minPairings
-  );
+        // Step 1: Get bands that meet both thresholds
+        let qualifiedBands = Object.keys(allPairings).filter(band => 
+            (counts[band] || 0) >= minShows &&
+            Object.keys(allPairings[band] || {}).length >= minPairings
+        );
   
-// Step 2: Filter to only keep bands connected (via primary or secondary) to at least TWO other qualified bands
-bands = qualifiedBands.filter(band => {
-    let primaryConnections = Object.keys(allPairings[band] || {});
-    let secondaryConnectionsForBand = Object.keys(secondaryConnections[band] || {});
-    let allConnections = [...new Set([...primaryConnections, ...secondaryConnectionsForBand])];
+         // Step 2: Filter to only keep bands connected (via primary or secondary) to at least TWO other qualified bands
+        bands = qualifiedBands.filter(band => {
+            let primaryConnections = Object.keys(allPairings[band] || {});
+            let secondaryConnectionsForBand = Object.keys(secondaryConnections[band] || {});
+            let allConnections = [...new Set([...primaryConnections, ...secondaryConnectionsForBand])];
   
-    // Count how many of those connections are to other qualified bands
-    let qualifiedConnectionsCount = allConnections.filter(conn => qualifiedBands.includes(conn)).length;
+        // Count how many of those connections are to other qualified bands
+        let qualifiedConnectionsCount = allConnections.filter(conn => qualifiedBands.includes(conn)).length;
   
     return qualifiedConnectionsCount >= 2;
     }).map(band => new BandNode(band, Object.keys(allPairings[band]).length));
@@ -280,7 +288,9 @@ bands = qualifiedBands.filter(band => {
 
 console.log("Simulation settled after " + settleFrames + " frames.");
 
-//-------------------------------MOUSE PRESSED---------------------------------------
+/*------------------------------------------------------------------------
+                     ||Mouse Settings||
+--------------------------------------------------------------------------*/
 function mousePressed() {
    
     // Start dragging
@@ -314,6 +324,8 @@ function mouseDragged() {
     }
   }
 
+
+  //------------------------------Scroll Zoom--------------------------
   function mouseWheel(event) {
     let zoomSensitivity = 0.004;
     let newZoom = zoom - event.delta * zoomSensitivity;
@@ -331,7 +343,9 @@ function mouseDragged() {
   }
 
   
-
+/*------------------------------------------------------------------------
+                     ||Text Overlaps||
+--------------------------------------------------------------------------*/
 //--------------AVOID TEXT OVERLAPS------------------
 function avoidLabelOverlap(bands) {
     for (let i = 0; i < bands.length; i++) {
@@ -368,8 +382,9 @@ function avoidLabelOverlap(bands) {
 }
 
 
-//---------------------------------------------------------------------------
-//------------------------ Draw ---------------------------------------------
+/*------------------------------------------------------------------------
+                     ||Draw||
+--------------------------------------------------------------------------*/
 function draw() {
     background(0);
 
@@ -393,9 +408,6 @@ function draw() {
     }
 
     //can add applyForces here if you want them to render in real time
-
-   
-
 
     pop();
     
