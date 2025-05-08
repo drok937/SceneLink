@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Excel to JSON Parser</title>
+  <style>
+    textarea, pre {
+      width: 100%;
+      height: 150px;
+      margin: 10px 0;
+    }
+    button {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Excel Show Data to JSON + Connection Generator</h1>
+
+  <p>Paste your Excel table data here:</p>
+  <textarea id="input"></textarea>
+  <button onclick="parseAndGenerate()">Convert & Generate Connections</button>
+  <button onclick="downloadJSON()">Download JSON</button>
+
+  <h3>Generated JSON:</h3>
+  <pre id="output"></pre>
+
+  <script>
+    function normalizeDate(dateStr) {
+      const [month, day, year] = dateStr.trim().split("/");
+      const fullYear = year.length === 2 ? `20${year}` : year;
+      return `${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+
+    function parseAndGenerate() {
+      const input = document.getElementById("input").value.trim();
+      const lines = input.split("\n").slice(1); // skip header
+
+      const shows = lines.map(line => {
+        const [id, date, venueRaw, bandsRaw] = line.split(/\t+/);
+        const venue = venueRaw.replace(/[()]/g, '').trim();
+        const bands = bandsRaw.split(',').map(b => b.trim()).filter(Boolean);
+        return { id: Number(id), date: normalizeDate(date), venue, bands };
+      });
+
+      const pairings = {};
+      shows.forEach(show => {
+        const { bands } = show;
+        for (let i = 0; i < bands.length; i++) {
+          for (let j = i + 1; j < bands.length; j++) {
+            const a = bands[i], b = bands[j];
+            pairings[a] = pairings[a] || {};
+            pairings[b] = pairings[b] || {};
+            pairings[a][b] = (pairings[a][b] || 0) + 1;
+            pairings[b][a] = (pairings[b][a] || 0) + 1;
+          }
+        }
+      });
+
+      const secondaries = {};
+      for (const artist in pairings) {
+        secondaries[artist] = {};
+        for (const partner in pairings[artist]) {
+          for (const maybeSecondary in pairings[partner]) {
+            if (maybeSecondary !== artist && !pairings[artist][maybeSecondary]) {
+              secondaries[artist][maybeSecondary] = (secondaries[artist][maybeSecondary] || 0) + 1;
+            }
+          }
+        }
+      }
+
+      const outputJSON = {
+        shows,
+        directConnections: pairings,
+        secondaryConnections: secondaries
+      };
+
+      document.getElementById("output").textContent = JSON.stringify(outputJSON, null, 2);
+    }
+
+    function downloadJSON() {
+      const dataStr = document.getElementById("output").textContent;
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "enriched-data.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  </script>
+</body>
+</html>

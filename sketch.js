@@ -57,7 +57,7 @@ class BandNode {
                 for (let otherBand in secondaryConnections[this.name]) {
                     let otherBandNode = bands.find(b => b.name === otherBand);
                     if (otherBandNode) {
-                        stroke(255, 0, 0, 50); // Red color
+                        stroke(225, 0, 30, 105); // Red color
                        
                         //map the stroke of the line to the strength of the connection
                         strokeWeight(map(secondaryConnections[this.name][otherBand], 1, maxSConnections, 1, 10, true)); 
