@@ -8,61 +8,17 @@ let allPairings;
 let secondaryConnections;
 let counts = {};
 
-//--------------------------------------------Import data from JSON file-------------------
 async function populate() {
     try { 
-        const response = await fetch('data.json'); // connect to JSON file
-        const shows = await response.json();
+        const response = await fetch('data.json');
+        const data = await response.json();  // ✅ Rename shows -> data
 
-        const uniqueShows = [];
-        const seen = new Set();
+        // ✅ Access nested structures correctly
+        allPairings = data.directConnections;
+        secondaryConnections = data.secondaryConnections;
 
-        // Filter duplicates
-        shows.shows.forEach(show => {
-         if (!show.date || !Array.isArray(show.bands)) return; // basic sanity check
-
-         // Build a unique key based on date and sorted band lineup
-        const key = `${show.date}::${show.bands.slice().sort().join(',')}`;
-
-             if (!seen.has(key)) {
-             seen.add(key);
-            uniqueShows.push(show);
-            }
-        });
-        // Count shows per band and store globally
-        counts = countShowsForAllBands(shows);
-
-        function countShowsForAllBands(data) {
-            const counts = {};
-            data.shows.forEach(show => {
-                // Check if show.bands is an array before calling .forEach
-                if (Array.isArray(show.bands)) {
-                    show.bands.forEach(band => {
-                        if (!counts[band]) {
-                            counts[band] = 0;
-                        }
-                        counts[band]++;
-                    });
-                } else {
-                    console.warn('show.bands is not an array:', show.bands);
-                }
-            });
-            return counts;
-        }
-        allPairings = generatePairings(shows);
-        secondaryConnections = generateSecondaryConnections(allPairings);
-
-        // 🟡 Wait until p5 is fully ready before calling BandNode (which uses `map`)
-        const waitForP5 = () => new Promise(resolve => {
-            const check = () => {
-                if (isP5Ready && typeof map === "function") {
-                    resolve();
-                } else {
-                    setTimeout(check, 10);
-                }
-            };
-            check();
-        });
+        // ✅ Use countShows correctly
+        counts = data.bandShowCounts;
 
         await waitForP5();
         setupDataVis(allPairings, secondaryConnections);
@@ -72,53 +28,81 @@ async function populate() {
     }
 }
 
-//----------------------------------Process data for direct pairings of bands----------------------------
-function generatePairings(obj) { //show which artists have played with which other artists how many times
-    const concertList = obj.shows;
-    const allPairings = {};  //create new set that will hold the pairings
+// ✅ Fix countShows to return the correct object
+// function countShows(shows) {
+//     const result = {};
+//     for (const show of shows) {
+//         for (const band of show.bands || []) {
+//             result[band] = (result[band] || 0) + 1;
+//         }
+//     }
+//     return result;
+// }
 
-    for (const show of concertList) { //go through each show and add a set to hold their connections
-        const lineup = show.bands; 
-        for (let i = 0; i < lineup.length; i++) {
-            const artist = lineup[i];
-            if (!allPairings[artist]) { //if the artist does not already have a subset to hold their connections create one
-                allPairings[artist] = {};
+// ✅ Keep this outside of populate()
+function waitForP5() {
+    return new Promise(resolve => {
+        const check = () => {
+            if (typeof map === "function") {
+                resolve();
+            } else {
+                setTimeout(check, 10);
             }
-            for (let j = i + 1; j < lineup.length; j++) { //go through the other artists on the bill and connect the artists one at a time
-                const otherArtist = lineup[j];
-                if (!allPairings[otherArtist]) {
-                    allPairings[otherArtist] = {};
-                }
-                allPairings[artist][otherArtist] = (allPairings[artist][otherArtist] || 0) + 1; //add the connection
-                allPairings[otherArtist][artist] = (allPairings[otherArtist][artist] || 0) + 1; //reverse connection so band A connects to B and B to A
-            }
-        }
-    }
-    return allPairings;
+        };
+        check();
+    });
 }
+
+  
+
+  
+//----------------------------------Process data for direct pairings of bands----------------------------
+// function generatePairings(obj) { //show which artists have played with which other artists how many times
+//     const concertList = obj.shows;
+//     const allPairings = {};  //create new set that will hold the pairings
+
+//     for (const show of concertList) { //go through each show and add a set to hold their connections
+//         const lineup = show.bands; 
+//         for (let i = 0; i < lineup.length; i++) {
+//             const artist = lineup[i];
+//             if (!allPairings[artist]) { //if the artist does not already have a subset to hold their connections create one
+//                 allPairings[artist] = {};
+//             }
+//             for (let j = i + 1; j < lineup.length; j++) { //go through the other artists on the bill and connect the artists one at a time
+//                 const otherArtist = lineup[j];
+//                 if (!allPairings[otherArtist]) {
+//                     allPairings[otherArtist] = {};
+//                 }
+//                 allPairings[artist][otherArtist] = (allPairings[artist][otherArtist] || 0) + 1; //add the connection
+//                 allPairings[otherArtist][artist] = (allPairings[otherArtist][artist] || 0) + 1; //reverse connection so band A connects to B and B to A
+//             }
+//         }
+//     }
+//     return allPairings;
+// }
 
 //populate()
 
 //-----------------------------process data for indirect pairings of bands-----------------------------
 //this will show when two artists have both shared a bill with the same artist. Works same way as "generate pairings"
-function generateSecondaryConnections(allPairings) {
-    const secondaryConnections = {}; //new set to hold secondaries
-    for (const artist in allPairings) { //go through each artist in the direct pairings
-        if (!secondaryConnections[artist]) { //build a subset if one doesn't exist for this artist
-            secondaryConnections[artist] = {};
-        }
-        for (const directPartner in allPairings[artist]) { ////direct partner is an artist that the artist has shared a bill with.
-            for (const secondaryPartner in allPairings[directPartner]) { //go through all of the direct pairings for each artist
-                if (secondaryPartner !== artist //presents self pairing
-                    && !(artist in allPairings[secondaryPartner])) { //might not keep this condition. Elminates repeats of secondary and primary connections but I might actually want the repetition
-                    secondaryConnections[artist][secondaryPartner] = //creates connection
-                        (secondaryConnections[artist][secondaryPartner] || 0) + 1; //adds the tally
-                }
-            }
-        }
-    }
-    return secondaryConnections;
-}
+// function generateSecondaryConnections(allPairings) {
+//     const secondaryConnections = {}; //new set to hold secondaries
+//     for (const artist in allPairings) { //go through each artist in the direct pairings
+//         if (!secondaryConnections[artist]) { //build a subset if one doesn't exist for this artist
+//             secondaryConnections[artist] = {};
+//         }
+//         for (const directPartner in allPairings[artist]) { ////direct partner is an artist that the artist has shared a bill with.
+//             for (const secondaryPartner in allPairings[directPartner]) { //go through all of the direct pairings for each artist
+//                 if (secondaryPartner !== artist //presents self pairing
+//                     && !(artist in allPairings[secondaryPartner])) { //might not keep this condition. Elminates repeats of secondary and primary connections but I might actually want the repetition
+//                     secondaryConnections[artist][secondaryPartner] = //creates connection
+//                         (secondaryConnections[artist][secondaryPartner] || 0) + 1; //adds the tally
+//                 }
+//             }
+//         }
+//     }
+//     return secondaryConnections;
+// }
 
 
 

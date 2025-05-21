@@ -20,63 +20,128 @@
   <p>Paste your Excel table data here:</p>
   <textarea id="input"></textarea>
   <button onclick="parseAndGenerate()">Convert & Generate Connections</button>
+  <button onclick="copyToClipboard()">Copy to Clipboard</button>
   <button onclick="downloadJSON()">Download JSON</button>
 
   <h3>Generated JSON:</h3>
   <pre id="output"></pre>
 
   <script>
-    function normalizeDate(dateStr) {
-      const [month, day, year] = dateStr.trim().split("/");
-      const fullYear = year.length === 2 ? `20${year}` : year;
-      return `${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  function normalizeDate(dateStr) {
+  const parts = dateStr.trim().split("/");
+  if (parts.length !== 3) {
+    console.warn("Invalid date:", dateStr);
+    return null;
+  }
+
+  const [month, day, year] = parts;
+  if (!month || !day || !year) {
+    console.warn("Incomplete date:", dateStr);
+    return null;
+  }
+
+  const fullYear = year.length === 2 ? `20${year}` : year;
+  return `${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+}
+
+function parseAndGenerate() {
+  const input = document.getElementById("input").value.trim();
+  const lines = input.split("\n").slice(1); // skip header
+
+  const rawShows = lines.map(line => {
+    const [id, date, venueRaw, bandsRaw] = line.split(/\t+/);
+    const normDate = normalizeDate(date);
+    if (!normDate) return null;
+
+    const venue = venueRaw.replace(/[()]/g, '').trim();
+    const bands = bandsRaw.split(',').map(b => b.trim()).filter(Boolean);
+    return { id: Number(id), date: normDate, venue, bands };
+  }).filter(Boolean); // remove nulls from invalid lines
+
+  // 🧹 Remove duplicate shows based on date + sorted bands
+  const seen = new Set();
+  const uniqueShows = [];
+  for (const show of rawShows) {
+    const key = `${show.date}::${show.bands.join(",")}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueShows.push(show);
     }
+  }
 
-    function parseAndGenerate() {
-      const input = document.getElementById("input").value.trim();
-      const lines = input.split("\n").slice(1); // skip header
+  // 🎯 Count unique shows per band
+  const bandShowCounts = {};
+  for (const show of uniqueShows) {
+    for (const band of show.bands) {
+      bandShowCounts[band] = (bandShowCounts[band] || 0) + 1;
+    }
+  }
 
-      const shows = lines.map(line => {
-        const [id, date, venueRaw, bandsRaw] = line.split(/\t+/);
-        const venue = venueRaw.replace(/[()]/g, '').trim();
-        const bands = bandsRaw.split(',').map(b => b.trim()).filter(Boolean);
-        return { id: Number(id), date: normalizeDate(date), venue, bands };
-      });
+  // 🔗 Generate direct connections
+  const pairings = {};
+  uniqueShows.forEach(show => {
+    const { bands } = show;
+    for (let i = 0; i < bands.length; i++) {
+      for (let j = i + 1; j < bands.length; j++) {
+        const a = bands[i], b = bands[j];
+        pairings[a] = pairings[a] || {};
+        pairings[b] = pairings[b] || {};
+        pairings[a][b] = (pairings[a][b] || 0) + 1;
+        pairings[b][a] = (pairings[b][a] || 0) + 1;
+      }
+    }
+  });
 
-      const pairings = {};
-      shows.forEach(show => {
-        const { bands } = show;
-        for (let i = 0; i < bands.length; i++) {
-          for (let j = i + 1; j < bands.length; j++) {
-            const a = bands[i], b = bands[j];
-            pairings[a] = pairings[a] || {};
-            pairings[b] = pairings[b] || {};
-            pairings[a][b] = (pairings[a][b] || 0) + 1;
-            pairings[b][a] = (pairings[b][a] || 0) + 1;
-          }
-        }
-      });
-
-      const secondaries = {};
-      for (const artist in pairings) {
-        secondaries[artist] = {};
-        for (const partner in pairings[artist]) {
-          for (const maybeSecondary in pairings[partner]) {
-            if (maybeSecondary !== artist && !pairings[artist][maybeSecondary]) {
-              secondaries[artist][maybeSecondary] = (secondaries[artist][maybeSecondary] || 0) + 1;
-            }
-          }
+  // 🔁 Generate secondary connections
+  const secondaries = {};
+  for (const artist in pairings) {
+    secondaries[artist] = {};
+    for (const partner in pairings[artist]) {
+      for (const maybeSecondary in pairings[partner]) {
+        if (
+          maybeSecondary !== artist &&
+          !pairings[artist][maybeSecondary]
+        ) {
+          secondaries[artist][maybeSecondary] =
+            (secondaries[artist][maybeSecondary] || 0) + 1;
         }
       }
-
-      const outputJSON = {
-        shows,
-        directConnections: pairings,
-        secondaryConnections: secondaries
-      };
-
-      document.getElementById("output").textContent = JSON.stringify(outputJSON, null, 2);
     }
+  }
+
+  // 🔍 Find max primary and secondary connection values
+  let maxPConnections = 0;
+  let maxSConnections = 0;
+
+  for (const band in pairings) {
+    for (const other in pairings[band]) {
+      if (pairings[band][other] > maxPConnections) {
+        maxPConnections = pairings[band][other];
+      }
+    }
+  }
+
+  for (const band in secondaries) {
+    for (const other in secondaries[band]) {
+      if (secondaries[band][other] > maxSConnections) {
+        maxSConnections = secondaries[band][other];
+      }
+    }
+  }
+
+  // 📦 Final output
+  const outputJSON = {
+    shows: uniqueShows,
+    directConnections: pairings,
+    secondaryConnections: secondaries,
+    bandShowCounts: bandShowCounts,
+    maxPConnections: maxPConnections,
+    maxSConnections: maxSConnections
+  };
+
+  document.getElementById("output").textContent = JSON.stringify(outputJSON, null, 2);
+}
+
 
     function downloadJSON() {
       const dataStr = document.getElementById("output").textContent;
@@ -89,6 +154,16 @@
       a.click();
       document.body.removeChild(a);
     }
+
+    function copyToClipboard() {
+  const output = document.getElementById("output").textContent;
+  navigator.clipboard.writeText(output).then(() => {
+    alert("JSON copied to clipboard!");
+  }).catch(err => {
+    console.error("Failed to copy JSON:", err);
+    alert("Failed to copy JSON.");
+  });
+}
   </script>
 </body>
 </html>
