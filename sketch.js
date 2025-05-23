@@ -3,15 +3,15 @@ let isP5Ready = false;
 let bands = [];
 let bandNodeMap = {}; // stores all BandNodes, indexed by name
 let maxShows = 1;
-let maxPConnections = 1; 
-let maxSConnections = 1; 
+let maxPConnections = 1;
+let maxSConnections = 1;
 let selectedBand = null; 
 
-let minShows = 4; // Alters number of shows a band needs to play to show up on the map
-let minPairings = 2; // atlers the number of connections a band needs to show up on map
+let minShows = 6; // Alters number of shows a band needs to play to show up on the map
+let minPairings = 3; // atlers the number of connections a band needs to show up on map
 
 //Set time for magnetism to run. Stop after settleFrames
-let settleFrames = 1;  // Number of frames before movement stops. Higher num = more latency better spread
+let settleFrames = 7000;  // Number of frames before movement stops. Higher num = more latency better spread
 let currentFrame = 0;    // Counter for frames
 
 //zoom and pan settings
@@ -35,7 +35,7 @@ class BandNode {
 
         // look up the number of shows a band has played and map that to the size of the node
         this.numShows =  counts[name] || 1;
-        this.size = map(this.numShows, 1, 10, 1, 20);
+        this.size = map(this.numShows, minShows, 10, 1, 40);
        
 
         //Distribute the nodes evenly across the campus randomly (pre-magnetism)
@@ -45,101 +45,74 @@ class BandNode {
     
     }
 
-    drawConnections() {
-    
-
-        // Draw secondary connections (Red)
-        if (secondaryConnections[this.name] && typeof secondaryConnections[this.name] === 'object') {
-            for (let otherBand in secondaryConnections[this.name]) {
-               let otherBandNode = bandNodeMap[otherBand];
-               if (
-                otherBandNode &&
-                bands.includes(otherBandNode) && // ← Only connect to visible nodes
-                typeof otherBandNode.x === 'number' &&
-                typeof otherBandNode.y === 'number'
-            ) {
-            
-                    stroke(225, 0, 30, 105);
-                    strokeWeight(1);
-            //         let sValue = secondaryConnections[this.name]?.[otherBand];
-            //         if (typeof sValue !== 'number' || isNaN(sValue)) {
-            //           console.warn("Invalid secondary connection value:", sValue, "for", this.name, "and", otherBand);
-            //           sValue = 1; 
-            //         }
-                    
-            //         let sWeight = map(sValue, 1, maxSConnections || 1, 1, 10, true);
-            //         if (isNaN(sWeight)) {
-            //           console.warn("strokeWeight map failed for secondary:", {
-            //             sValue,
-            //             maxSConnections,
-            //             thisName: this.name,
-            //             otherBand
-            //           });
-            //           sWeight = 1;
-            //         }
-            //         strokeWeight(sWeight);
-                        
-                    line(this.x, this.y, otherBandNode.x, otherBandNode.y);
-                // } else {
-                //     console.warn(`Skipping secondary connection: "${this.name}" → "${otherBand}"`);
-                }
-                
-            }
+drawConnections() {
+    // Secondary connections (Red)
+    if (secondaryConnections[this.name] && typeof secondaryConnections[this.name] === 'object') {
+      for (let otherBand in secondaryConnections[this.name]) {
+        let otherBandNode = bandNodeMap[otherBand];
+        if (
+          otherBandNode &&
+          bands.includes(otherBandNode) &&
+          Number.isFinite(otherBandNode.x) &&
+          Number.isFinite(otherBandNode.y)
+        ) {
+          let sValue = secondaryConnections[this.name][otherBand];
+          let safeMaxS = (Number.isFinite(maxSConnections) && maxSConnections > 1) ? maxSConnections : 1.01;
+          let sWeight = map(sValue, 1, safeMaxS, 1, 10, true);
+  
+          if (isNaN(sWeight)) {
+            console.warn("Mapped sWeight is NaN:", { sValue, maxSConnections });
+            sWeight = 1;
+          }
+  
+          stroke(225, 0, 30, 105);
+          strokeWeight(sWeight);
+          line(this.x, this.y, otherBandNode.x, otherBandNode.y);
         }
-    
-        // Draw primary connections
-        if (allPairings[this.name]) {
-            for (let otherBand in allPairings[this.name]) {
-                if (allPairings[this.name][otherBand] > 0) {
-                    let otherBandNode = bandNodeMap[otherBand];
-
-                    if (
-                        otherBandNode &&
-                        bands.includes(otherBandNode) && // ← Only connect to visible nodes
-                        typeof otherBandNode.x === 'number' &&
-                        typeof otherBandNode.y === 'number'
-                    ) {
-                        stroke(200, 250);
-                        strokeWeight(1);
-//                         let connectionValue = allPairings[this.name]?.[otherBand];
-// if (typeof connectionValue !== 'number' || isNaN(connectionValue)) {
-//   console.warn("Invalid primary connection value:", connectionValue, "for", this.name, "and", otherBand);
-//   connectionValue = 1;
-// }
-
-// let weight = map(connectionValue, 1, maxPConnections || 1, 1, 6, true);
-// if (isNaN(weight)) {
-//   console.warn("strokeWeight map failed:", {
-//     connectionValue,
-//     maxPConnections,
-//     thisName: this.name,
-//     otherBand
-//   });
-//   weight = 1;
-// }
-// strokeWeight(weight);
-      
-                        line(this.x, this.y, otherBandNode.x, otherBandNode.y);
-                        // } else {
-                        // console.warn(`Skipping primary connection: "${this.name}" → "${otherBand}"`);
-                        }
-                }
-            }
-        }
+      }
     }
+  
+    // Primary connections (Blue)
+    if (allPairings[this.name] && typeof allPairings[this.name] === 'object') {
+      for (let otherBand in allPairings[this.name]) {
+        let otherBandNode = bandNodeMap[otherBand];
+        if (
+          otherBandNode &&
+          bands.includes(otherBandNode) &&
+          Number.isFinite(otherBandNode.x) &&
+          Number.isFinite(otherBandNode.y)
+        ) {
+          let pValue = allPairings[this.name][otherBand];
+          let safeMaxP = (Number.isFinite(maxPConnections) && maxPConnections > 1) ? maxPConnections : 1.01;
+          let pWeight = map(pValue, 1, safeMaxP, 1, 10, true);
+  
+          if (isNaN(pWeight)) {
+            console.warn("Mapped pWeight is NaN:", { pValue, maxPConnections });
+            pWeight = 1;
+          }
+  
+          stroke(0, 100, 255, 105);
+          strokeWeight(pWeight);
+          line(this.x, this.y, otherBandNode.x, otherBandNode.y);
+        }
+      }
+    }
+  }
+  
+  
  
     //-----------------------------------------------------------------------------------
     applyForces() {
         let forceX = 0;
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
-        let baseAttractionStrength = .5;  // Base attraction strength
+        let baseAttractionStrength = 1;  // Base attraction strength
         let baseRepulsionStrength = 4500;    // Base repulsion strength 
-        let minDistance = 100;               // Minimum distance before repulsion kicks in
-        let spreadStrength = 0.0001;         // Outward spread force (from center) to prevent central clustering
-        let bufferDistance = 5000;            //buffer around each node
-        let edgeMargin = 150;                 //where edge force starts kicking
-        let edgeForceStrength = 50;           //power of edge force to prevent clusters around edges
+        let minDistance = 1000;               // Minimum distance before repulsion kicks in
+        let spreadStrength = 0.001;         // Outward spread force (from center) to prevent central clustering
+        let bufferDistance = 500;            //buffer around each node
+        let edgeMargin = 100;                 //where edge force starts kicking
+        let edgeForceStrength = 500;           //power of edge force to prevent clusters around edges
     //-----------------------------------------------------------------------------------
         for (let otherBand of bands) {
             if (otherBand === this) continue; // Skip self
@@ -187,6 +160,8 @@ class BandNode {
         forceX += spreadX * spreadStrength;
         forceY += spreadY * spreadStrength;
 
+        console.log(`${this.name} → ${otherBand.name} | conn: ${connectionStrength} | dist: ${distance}`);
+
 
         // Soft edge repulsion
 
@@ -204,8 +179,8 @@ class BandNode {
         }
     
         // Update velocity with damping
-        this.vx = (this.vx + forceX) * 0.4;  // damping factor
-        this.vy = (this.vy + forceY) * 0.4;
+        this.vx = (this.vx + forceX) * 2;  // damping factor
+        this.vy = (this.vy + forceY) * 2;
 
         // Apply velocity
         this.x += this.vx;
@@ -257,26 +232,6 @@ function setup() {
             avoidLabelOverlap(bands);
         }
         currentFrame++;
-    }
-    
-    maxPConnections = 1;
-    for (let band in allPairings) {
-      for (let other in allPairings[band]) {
-        let val = allPairings[band][other];
-        if (typeof val === 'number' && !isNaN(val)) {
-          maxPConnections = Math.max(maxPConnections, val);
-        }
-      }
-    }
-    
-    maxSConnections = 1;
-    for (let band in secondaryConnections) {
-      for (let other in secondaryConnections[band]) {
-        let val = secondaryConnections[band][other];
-        if (typeof val === 'number' && !isNaN(val)) {
-          maxSConnections = Math.max(maxSConnections, val);
-        }
-      }
     }
     
 };
@@ -334,27 +289,6 @@ function setupDataVis(allPairings, secondaryConnections) {
     for (let band in allPairings) {
         maxShows = max(maxShows, Object.keys(allPairings[band]).length);
     }
-// Calculate Primary connection count
-maxPConnections = 1;
-for (let band in allPairings) {
-    for (let otherBand in allPairings[band]) {
-        let count = allPairings[band][otherBand];
-        if (typeof count === 'number' && !isNaN(count)) {
-            maxPConnections = Math.max(maxPConnections, count);
-        }
-    }
-}
-
-// Calculate Secondary connection count
-maxSConnections = 1;
-for (let band in secondaryConnections) {
-    for (let otherBand in secondaryConnections[band]) {
-        let count = secondaryConnections[band][otherBand];
-        if (typeof count === 'number' && !isNaN(count)) {
-            maxSConnections = Math.max(maxSConnections, count);
-        }
-    }
-}
 
 
 
