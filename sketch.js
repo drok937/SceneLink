@@ -11,7 +11,7 @@ let minShows = 6; // Alters number of shows a band needs to play to show up on t
 let minPairings = 3; // atlers the number of connections a band needs to show up on map
 
 //Set time for magnetism to run. Stop after settleFrames
-let settleFrames = 700;  // Number of frames before movement stops. Higher num = more latency better spread
+let settleFrames = 50;  // Number of frames before movement stops. Higher num = more latency better spread
 let currentFrame = 0;    // Counter for frames
 
 //zoom and pan settings
@@ -98,8 +98,8 @@ class BandNode {
         let baseAttractionStrength = .5;  // Base attraction strength
         let baseRepulsionStrength = 4500;    // Base repulsion strength 
         let minDistance = 100;               // Minimum distance before repulsion kicks in
-        let spreadStrength = 0.0001;         // Outward spread force (from center) to prevent central clustering
-        let bufferDistance = 5000;            //buffer around each node
+        let spreadStrength = 0.00001;         // Outward spread force (from center) to prevent central clustering
+        let bufferDistance = 10000;            //buffer around each node
         let edgeMargin = 150;                 //where edge force starts kicking
         let edgeForceStrength = 50;           //power of edge force to prevent clusters around edges
     //-----------------------------------------------------------------------------------
@@ -171,9 +171,9 @@ class BandNode {
         this.vx = (this.vx + forceX) * .85;  // damping factor
         this.vy = (this.vy + forceY) * .85;
 
-        // let maxSpeed = 10;
-        // this.vx = constrain(this.vx, -maxSpeed, maxSpeed);
-        // this.vy = constrain(this.vy, -maxSpeed, maxSpeed);
+        let maxSpeed = 10;
+        this.vx = constrain(this.vx, -maxSpeed, maxSpeed);
+        this.vy = constrain(this.vy, -maxSpeed, maxSpeed);
 
         // Apply velocity
         this.x += this.vx;
@@ -223,13 +223,7 @@ function setup() {
         populate()
         
         // Apply forces during settling frames. THIS CAN BE MOVED TO DRAW LOOP TO SEE FORCES
-        if (currentFrame < settleFrames) {
-            for (let band of bands) {
-                band.applyForces();
-            }
-            currentFrame++;
-        }
-        avoidLabelOverlap(bands);
+        
        
 };
 
@@ -422,7 +416,14 @@ function draw() {
   }
 
     //can add applyForces here if you want them to render in real time
-    
+    if (currentFrame < settleFrames) {
+        for (let band of bands) {
+            band.applyForces();
+        }
+   
+        currentFrame++;
+    }
+    avoidLabelOverlap(bands);
 
     pop();
     
