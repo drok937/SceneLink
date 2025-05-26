@@ -88,49 +88,20 @@ class BandNode {
           }
         }
       }
-      
-  
-    // Primary connections (White)
-//     if (allPairings[this.name] && typeof allPairings[this.name] === 'object') {
-//       for (let otherBand in allPairings[this.name]) {
-//         let otherBandNode = bandNodeMap[otherBand];
-//         if (
-//           otherBandNode &&
-//           bands.includes(otherBandNode) &&
-//           Number.isFinite(otherBandNode.x) &&
-//           Number.isFinite(otherBandNode.y)
-//         ) {
-//           let pValue = allPairings[this.name][otherBand];
-//           let safeMaxP = (Number.isFinite(maxPConnections) && maxPConnections > 1) ? maxPConnections : 1.01;
-//           let pWeight = map(pValue, 1, safeMaxP, 1, 10, true);
-  
-//           if (isNaN(pWeight)) {
-//             console.warn("Mapped pWeight is NaN:", { pValue, maxPConnections });
-//             pWeight = 1;
-//           }
-  
-//           stroke(255, 255, 255, 255);
-//           strokeWeight(pWeight);
-//           line(this.x, this.y, otherBandNode.x, otherBandNode.y);
-//         }
-//       }
-//     }
-//   }
-  
-  
- 
+    
+
     //-----------------------------------------------------------------------------------
     applyForces() {
         let forceX = 0;
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
-     let baseAttractionStrength = .1;  // Base attraction strength
-     let baseRepulsionStrength = 1500;    // Base repulsion strength 
-     let minDistance = 100;               // Minimum distance before repulsion kicks in
-     let spreadStrength = 0.02;         // Outward spread force (from center) to prevent central clustering
-     let bufferDistance = 2000;            //buffer around each node
-     let edgeMargin = 650;                 //where edge force starts kicking
-     let edgeForceStrength = 75;           //power of edge force to prevent clusters around edges
+        let baseAttractionStrength = .5;  // Base attraction strength
+        let baseRepulsionStrength = 4500;    // Base repulsion strength 
+        let minDistance = 100;               // Minimum distance before repulsion kicks in
+        let spreadStrength = 0.0001;         // Outward spread force (from center) to prevent central clustering
+        let bufferDistance = 5000;            //buffer around each node
+        let edgeMargin = 150;                 //where edge force starts kicking
+        let edgeForceStrength = 50;           //power of edge force to prevent clusters around edges
     //-----------------------------------------------------------------------------------
         for (let otherBand of bands) {
             if (otherBand === this) continue; // Skip self
@@ -200,9 +171,9 @@ class BandNode {
         this.vx = (this.vx + forceX) * .85;  // damping factor
         this.vy = (this.vy + forceY) * .85;
 
-        let maxSpeed = 20;
-        this.vx = constrain(this.vx, -maxSpeed, maxSpeed);
-        this.vy = constrain(this.vy, -maxSpeed, maxSpeed);
+        // let maxSpeed = 10;
+        // this.vx = constrain(this.vx, -maxSpeed, maxSpeed);
+        // this.vy = constrain(this.vy, -maxSpeed, maxSpeed);
 
         // Apply velocity
         this.x += this.vx;
@@ -252,7 +223,13 @@ function setup() {
         populate()
         
         // Apply forces during settling frames. THIS CAN BE MOVED TO DRAW LOOP TO SEE FORCES
-        
+        if (currentFrame < settleFrames) {
+            for (let band of bands) {
+                band.applyForces();
+            }
+            currentFrame++;
+        }
+        avoidLabelOverlap(bands);
        
 };
 
@@ -445,13 +422,7 @@ function draw() {
   }
 
     //can add applyForces here if you want them to render in real time
-    if (currentFrame < settleFrames) {
-        for (let band of bands) {
-            band.applyForces();
-        }
-        currentFrame++;
-    }
-    avoidLabelOverlap(bands);
+    
 
     pop();
     
