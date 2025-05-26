@@ -8,28 +8,6 @@ let allPairings;
 let secondaryConnections;
 let counts = {};
 
-
-// async function populate() {
-//     try { 
-//         const response = await fetch('data.json');
-//         const data = await response.json();  // ✅ Rename shows -> data
-
-//         // ✅ Access nested structures correctly
-//         allPairings = data.directConnections;
-//         secondaryConnections = data.secondaryConnections;
-
-//         // ✅ Use countShows correctly
-//         counts = data.bandShowCounts;
-
-//         await waitForP5();
-//         setupDataVis(allPairings, secondaryConnections);
-
-//     } catch (error) {
-//         console.error("Error loading data:", error);
-//     }
-// }
-
-
 async function populate() {
     try { 
         const response = await fetch('data.json');
@@ -51,14 +29,8 @@ async function populate() {
 
     } catch (error) {
         console.error("Error loading data:", error);
-        
-        // fallback values if needed
-        // maxPConnections = 1;
-        // maxSConnections = 1;
     }
 }
-
-// ✅ Keep this outside of populate()
 function waitForP5() {
     return new Promise(resolve => {
         const check = () => {
