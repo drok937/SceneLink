@@ -11,7 +11,7 @@ let minShows = 6; // Alters number of shows a band needs to play to show up on t
 let minPairings = 3; // atlers the number of connections a band needs to show up on map
 
 //Set time for magnetism to run. Stop after settleFrames
-let settleFrames = 50;  // Number of frames before movement stops. Higher num = more latency better spread
+let settleFrames = 5000;  // Number of frames before movement stops. Higher num = more latency better spread
 let currentFrame = 0;    // Counter for frames
 
 //zoom and pan settings
@@ -20,6 +20,17 @@ let offsetX = 0;
 let offsetY = 0;
 let isDragging = false;
 let dragStartX, dragStartY;
+
+//toggle connections
+let showConnections = true;
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.getElementById("toggleConnections");
+  if (toggle) {
+    toggle.addEventListener("change", (e) => {
+      showConnections = e.target.checked;
+    });
+  }
+});
 
 /*------------------------------------------------------------------------------------------------
                      ||Build BandNode Class||
@@ -95,15 +106,36 @@ class BandNode {
         let forceX = 0;
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
-        let baseAttractionStrength = .6;  // Base attraction strength
-        let baseRepulsionStrength = 4500;    // Base repulsion strength 
-        let minDistance = 100;               // Minimum distance before repulsion kicks in
+        let baseAttractionStrength = 2; // Base attraction strength for connection
+        let baseRepulsionStrength = 200;  // Try 500 or lower
+        let minDistance = 50;               // Minimum distance before repulsion kicks in
         let spreadStrength = 0.00001;         // Outward spread force (from center) to prevent central clustering
-        let bufferDistance = 10000;            //buffer around each node
+        let bufferDistance = 9000;            //buffer around each node
         let edgeMargin = 150;                 //where edge force starts kicking
         let edgeForceStrength = 50;           //power of edge force to prevent clusters around edges
     //-----------------------------------------------------------------------------------
-        for (let otherBand of bands) {
+
+        let connectionStrength = primaryStrength + secondaryStrength;
+
+      // Stronger attraction for higher connection strength
+          let attractionStrength = baseAttractionStrength * Math.pow(connectionStrength, 1.5);
+          let attractionForce = attractionStrength * (distance - minDistance);
+          forceX += attractionForce * (dx / distance);
+          forceY += attractionForce * (dy / distance);
+
+          if (distance < bufferDistance) {
+        // Reduce repulsion for connected bands
+        let repulsionMultiplier = isConnected ? 0.3 : 1; // Lower repulsion if connected
+        let repulsionForce = baseRepulsionStrength / (distance * distance) * repulsionMultiplier;
+        let overlapFactor = (bufferDistance - distance) / bufferDistance;
+        repulsionForce *= 1 + overlapFactor * 2;
+
+        forceX -= repulsionForce * (dx / distance);
+        forceY -= repulsionForce * (dy / distance);
+}
+
+
+          for (let otherBand of bands) {
             if (otherBand === this) continue; // Skip self
             //calculate distance between nodes
             let dx = otherBand.x - this.x;
@@ -115,15 +147,15 @@ class BandNode {
             
             //sets force variable for how many times band has played together
             // change denominators to alter ratio of primary to seconary connection strength
-            let primaryStrength = allPairings[this.name]?.[otherBand.name] / 2  || 0;
-            let secondaryStrength = (secondaryConnections[this.name]?.[otherBand.name] || 0) / 3;
+            let primaryStrength = allPairings[this.name]?.[otherBand.name] / 1  || 0;
+            let secondaryStrength = (secondaryConnections[this.name]?.[otherBand.name] || 0) / 4;
             let connectionStrength = primaryStrength + secondaryStrength;
 
             let isConnected = connectionStrength > 0;
           
             if (isConnected) {
-                // Scale attraction based on connection strength
-                let attractionStrength = baseAttractionStrength * connectionStrength;
+                // Nonlinear attraction: strong connections pull much harder
+                let attractionStrength = baseAttractionStrength * Math.pow(connectionStrength, 2); // quadratic
                 let attractionForce = attractionStrength * (distance - minDistance);
                 forceX += attractionForce * (dx / distance);
                 forceY += attractionForce * (dy / distance);
@@ -282,7 +314,7 @@ function setupDataVis(allPairings, secondaryConnections) {
     }
 
 
-
+avoidLabelOverlap(bands);
 
 
 console.log("Simulation settled after " + settleFrames + " frames.");
@@ -394,12 +426,15 @@ function draw() {
     scale(zoom);
 
 
+  // toggle connection
+  if (showConnections) {
+
      // FIRST: draw all secondary (red) connections
-  for (let band of bands) {
-    if (band instanceof BandNode) {
-      band.drawSecondaryConnections();
+      for (let band of bands) {
+      if (band instanceof BandNode) {
+        band.drawSecondaryConnections();
+      }
     }
-  }
 
   // THEN: draw all primary (white) connections on top
   for (let band of bands) {
@@ -407,6 +442,7 @@ function draw() {
       band.drawPrimaryConnections();
     }
   }
+}
 
   // Draw band nodes on top of connections
   for (let band of bands) {
@@ -423,7 +459,8 @@ function draw() {
    
     //     currentFrame++;
     // }
-    avoidLabelOverlap(bands);
+
+    // avoidLabelOverlap(bands);
 
     pop();
     
