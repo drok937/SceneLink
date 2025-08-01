@@ -95,7 +95,7 @@ class BandNode {
         let forceX = 0;
         let forceY = 0;
      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
-        let baseAttractionStrength = .5;  // Base attraction strength
+        let baseAttractionStrength = .6;  // Base attraction strength
         let baseRepulsionStrength = 4500;    // Base repulsion strength 
         let minDistance = 100;               // Minimum distance before repulsion kicks in
         let spreadStrength = 0.00001;         // Outward spread force (from center) to prevent central clustering
@@ -416,13 +416,13 @@ function draw() {
   }
 
     //can add applyForces here if you want them to render in real time
-    if (currentFrame < settleFrames) {
-        for (let band of bands) {
-            band.applyForces();
-        }
+    // if (currentFrame < settleFrames) {
+    //     for (let band of bands) {
+    //         band.applyForces();
+    //     }
    
-        currentFrame++;
-    }
+    //     currentFrame++;
+    // }
     avoidLabelOverlap(bands);
 
     pop();
