@@ -102,121 +102,205 @@ class BandNode {
     
 
     //-----------------------------------------------------------------------------------
-    applyForces() {
-        let forceX = 0;
-        let forceY = 0;
-     //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
-        let baseAttractionStrength = 2; // Base attraction strength for connection
-        let baseRepulsionStrength = 200;  // Try 500 or lower
-        let minDistance = 50;               // Minimum distance before repulsion kicks in
-        let spreadStrength = 0.00001;         // Outward spread force (from center) to prevent central clustering
-        let bufferDistance = 9000;            //buffer around each node
-        let edgeMargin = 150;                 //where edge force starts kicking
-        let edgeForceStrength = 50;           //power of edge force to prevent clusters around edges
-    //-----------------------------------------------------------------------------------
+//     applyForces() {
+//         let forceX = 0;
+//         let forceY = 0;
+//      //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
+//         let baseAttractionStrength = 0.5; // Base attraction strength for connection
+//         let baseRepulsionStrength = 200;  // Try 500 or lower
+//         let minDistance = 50;               // Minimum distance before repulsion kicks in
+//         let spreadStrength = 0.00001;         // Outward spread force (from center) to prevent central clustering
+//         let bufferDistance = 9000;            //buffer around each node
+//         let edgeMargin = 150;                 //where edge force starts kicking
+//         let edgeForceStrength = 50;           //power of edge force to prevent clusters around edges
+//     //-----------------------------------------------------------------------------------
 
-        let connectionStrength = primaryStrength + secondaryStrength;
+//         let connectionStrength = primaryStrength + secondaryStrength;
 
-      // Stronger attraction for higher connection strength
-          let attractionStrength = baseAttractionStrength * Math.pow(connectionStrength, 1.5);
-          let attractionForce = attractionStrength * (distance - minDistance);
-          forceX += attractionForce * (dx / distance);
-          forceY += attractionForce * (dy / distance);
+//       // Stronger attraction for higher connection strength
+//           let attractionStrength = baseAttractionStrength * Math.pow(connectionStrength, 1.5);
+//           let attractionForce = attractionStrength * (distance - minDistance);
+//           forceX += attractionForce * (dx / distance);
+//           forceY += attractionForce * (dy / distance);
 
-          if (distance < bufferDistance) {
-        // Reduce repulsion for connected bands
-        let repulsionMultiplier = isConnected ? 0.3 : 1; // Lower repulsion if connected
-        let repulsionForce = baseRepulsionStrength / (distance * distance) * repulsionMultiplier;
-        let overlapFactor = (bufferDistance - distance) / bufferDistance;
-        repulsionForce *= 1 + overlapFactor * 2;
+//           if (distance < bufferDistance) {
+//         // Reduce repulsion for connected bands
+//         let repulsionMultiplier = isConnected ? 0.3 : 1; // Lower repulsion if connected
+//         let repulsionForce = baseRepulsionStrength / (distance * distance) * repulsionMultiplier;
+//         let overlapFactor = (bufferDistance - distance) / bufferDistance;
+//         repulsionForce *= 1 + overlapFactor * 2;
 
-        forceX -= repulsionForce * (dx / distance);
-        forceY -= repulsionForce * (dy / distance);
-}
+//         forceX -= repulsionForce * (dx / distance);
+//         forceY -= repulsionForce * (dy / distance);
+// }
 
 
-          for (let otherBand of bands) {
-            if (otherBand === this) continue; // Skip self
-            //calculate distance between nodes
-            let dx = otherBand.x - this.x;
-            let dy = otherBand.y - this.y;
-            let distance = sqrt(dx * dx + dy * dy);
+//           for (let otherBand of bands) {
+//             if (otherBand === this) continue; // Skip self
+//             //calculate distance between nodes
+//             let dx = otherBand.x - this.x;
+//             let dy = otherBand.y - this.y;
+//             let distance = sqrt(dx * dx + dy * dy);
 
-            //avoid dividing by 0
-            if (distance < 1) distance = 1; // Avoid division by zero
+//             //avoid dividing by 0
+//             if (distance < 1) distance = 1; // Avoid division by zero
             
-            //sets force variable for how many times band has played together
-            // change denominators to alter ratio of primary to seconary connection strength
-            let primaryStrength = allPairings[this.name]?.[otherBand.name] / 1  || 0;
-            let secondaryStrength = (secondaryConnections[this.name]?.[otherBand.name] || 0) / 4;
-            let connectionStrength = primaryStrength + secondaryStrength;
+//             //sets force variable for how many times band has played together
+//             // change denominators to alter ratio of primary to seconary connection strength
+//             let primaryStrength = allPairings[this.name]?.[otherBand.name] / 1  || 0;
+//             let secondaryStrength = (secondaryConnections[this.name]?.[otherBand.name] || 0) / 4;
+//             let connectionStrength = primaryStrength + secondaryStrength;
 
-            let isConnected = connectionStrength > 0;
+//             let isConnected = connectionStrength > 0;
           
-            if (isConnected) {
-                // Nonlinear attraction: strong connections pull much harder
-                let attractionStrength = baseAttractionStrength * Math.pow(connectionStrength, 2); // quadratic
-                let attractionForce = attractionStrength * (distance - minDistance);
-                forceX += attractionForce * (dx / distance);
-                forceY += attractionForce * (dy / distance);
-            } 
+//             if (isConnected) {
+//                 // Nonlinear attraction: strong connections pull much harder
+//                 let attractionStrength = baseAttractionStrength * Math.pow(connectionStrength, 2); // quadratic
+//                 let attractionForce = attractionStrength * (distance - minDistance);
+//                 forceX += attractionForce * (dx / distance);
+//                 forceY += attractionForce * (dy / distance);
+//             } 
 
-            // //keep it within bounds of the canvas
-            if (distance < bufferDistance) {
-                let repulsionForce = baseRepulsionStrength / (distance * distance);
-                    let overlapFactor = (bufferDistance - distance) / bufferDistance;
-                    repulsionForce *= 1 + overlapFactor * 2
+//             // //keep it within bounds of the canvas
+//             if (distance < bufferDistance) {
+//                 let repulsionForce = baseRepulsionStrength / (distance * distance);
+//                     let overlapFactor = (bufferDistance - distance) / bufferDistance;
+//                     repulsionForce *= 1 + overlapFactor * 2
             
-            // Apply repulsion force if too close
-                forceX -= repulsionForce * (dx / distance);
-                forceY -= repulsionForce * (dy / distance);
-            }
-        }
+//             // Apply repulsion force if too close
+//                 forceX -= repulsionForce * (dx / distance);
+//                 forceY -= repulsionForce * (dy / distance);
+//             }
+//         }
     
-        // Outward spread force to counteract central pooling
-        let centerX = windowWidth / 2;
-        let centerY = windowHeight / 2;
-        let spreadX = this.x - centerX;
-        let spreadY = this.y - centerY;
-        forceX += spreadX * spreadStrength;
-        forceY += spreadY * spreadStrength;
+//         // Outward spread force to counteract central pooling
+//         let centerX = windowWidth / 2;
+//         let centerY = windowHeight / 2;
+//         let spreadX = this.x - centerX;
+//         let spreadY = this.y - centerY;
+//         forceX += spreadX * spreadStrength;
+//         forceY += spreadY * spreadStrength;
 
     
 
 
-        // Soft edge repulsion
+//         // Soft edge repulsion
 
-        if (this.x < edgeMargin) {
-        forceX += edgeForceStrength * (edgeMargin - this.x) / edgeMargin;
-        }
-        if (this.x > windowWidth - edgeMargin) {
-        forceX -= edgeForceStrength * (this.x - (windowWidth - edgeMargin)) / edgeMargin;
-        }
-        if (this.y < edgeMargin) {
-        forceY += edgeForceStrength * (edgeMargin - this.y) / edgeMargin;
-        }
-        if (this.y > windowHeight - edgeMargin) {
-        forceY -= edgeForceStrength * (this.y - (windowHeight - edgeMargin)) / edgeMargin;
-        }
+//         if (this.x < edgeMargin) {
+//         forceX += edgeForceStrength * (edgeMargin - this.x) / edgeMargin;
+//         }
+//         if (this.x > windowWidth - edgeMargin) {
+//         forceX -= edgeForceStrength * (this.x - (windowWidth - edgeMargin)) / edgeMargin;
+//         }
+//         if (this.y < edgeMargin) {
+//         forceY += edgeForceStrength * (edgeMargin - this.y) / edgeMargin;
+//         }
+//         if (this.y > windowHeight - edgeMargin) {
+//         forceY -= edgeForceStrength * (this.y - (windowHeight - edgeMargin)) / edgeMargin;
+//         }
     
-        // Update velocity with damping
-        this.vx = (this.vx + forceX) * .85;  // damping factor
-        this.vy = (this.vy + forceY) * .85;
+//         // Update velocity with damping
+//         this.vx = (this.vx + forceX) * .85;  // damping factor
+//         this.vy = (this.vy + forceY) * .85;
 
-        let maxSpeed = 10;
-        this.vx = constrain(this.vx, -maxSpeed, maxSpeed);
-        this.vy = constrain(this.vy, -maxSpeed, maxSpeed);
+//         let maxSpeed = 10;
+//         this.vx = constrain(this.vx, -maxSpeed, maxSpeed);
+//         this.vy = constrain(this.vy, -maxSpeed, maxSpeed);
 
-        // Apply velocity
-        this.x += this.vx;
-        this.y += this.vy;
+//         // Apply velocity
+//         this.x += this.vx;
+//         this.y += this.vy;
 
  
 
 
    
        
-    } 
+ //   } 
+ applyForces() {
+    let forceX = 0;
+    let forceY = 0;
+    
+    //-----------------------------TWEAK MAGNETISM SETTINGS HERE------------------------------- 
+    let baseAttractionStrength = 0.5; // Base attraction strength for connection
+    let baseRepulsionStrength = 200;  // Try 500 or lower
+    let minDistance = 50;               // Minimum distance before repulsion kicks in
+    let spreadStrength = 0.00001;         // Outward spread force (from center) to prevent central clustering
+    let bufferDistance = 9000;            // buffer around each node
+    let edgeMargin = 150;                 // where edge force starts kicking
+    let edgeForceStrength = 50;           // power of edge force to prevent clusters around edges
+    //-----------------------------------------------------------------------------------
+
+    for (let otherBand of bands) {
+        if (otherBand === this) continue; // Skip self
+        
+        // Calculate distance between nodes
+        let dx = otherBand.x - this.x;
+        let dy = otherBand.y - this.y;
+        let distance = sqrt(dx * dx + dy * dy);
+        if (distance < 1) distance = 1; // Avoid division by zero
+        
+        // Calculate connection strengths
+        let primaryStrength = allPairings[this.name]?.[otherBand.name] / 1 || 0;
+        let secondaryStrength = (secondaryConnections[this.name]?.[otherBand.name] || 0) / 4;
+        let connectionStrength = primaryStrength + secondaryStrength;
+        let isConnected = connectionStrength > 0;
+        
+        // Apply attraction for connected bands
+        if (isConnected) {
+            let attractionStrength = baseAttractionStrength * Math.pow(connectionStrength, 2);
+            let attractionForce = attractionStrength * (distance - minDistance);
+            forceX += attractionForce * (dx / distance);
+            forceY += attractionForce * (dy / distance);
+        }
+        
+        // Apply repulsion between all bands
+        if (distance < bufferDistance) {
+            let repulsionMultiplier = isConnected ? 0.3 : 1; // Lower repulsion if connected
+            let repulsionForce = baseRepulsionStrength / (distance * distance) * repulsionMultiplier;
+            let overlapFactor = (bufferDistance - distance) / bufferDistance;
+            repulsionForce *= 1 + overlapFactor * 2;
+            
+            forceX -= repulsionForce * (dx / distance);
+            forceY -= repulsionForce * (dy / distance);
+        }
+    }
+    
+    // Outward spread force to counteract central pooling
+    let centerX = windowWidth / 2;
+    let centerY = windowHeight / 2;
+    let spreadX = this.x - centerX;
+    let spreadY = this.y - centerY;
+    forceX += spreadX * spreadStrength;
+    forceY += spreadY * spreadStrength;
+
+    // Soft edge repulsion
+    if (this.x < edgeMargin) {
+        forceX += edgeForceStrength * (edgeMargin - this.x) / edgeMargin;
+    }
+    if (this.x > windowWidth - edgeMargin) {
+        forceX -= edgeForceStrength * (this.x - (windowWidth - edgeMargin)) / edgeMargin;
+    }
+    if (this.y < edgeMargin) {
+        forceY += edgeForceStrength * (edgeMargin - this.y) / edgeMargin;
+    }
+    if (this.y > windowHeight - edgeMargin) {
+        forceY -= edgeForceStrength * (this.y - (windowHeight - edgeMargin)) / edgeMargin;
+    }
+
+    // Update velocity with damping
+    this.vx = (this.vx + forceX) * .85;  // damping factor
+    this.vy = (this.vy + forceY) * .85;
+
+    // Constrain maximum speed
+    let maxSpeed = 10;
+    this.vx = constrain(this.vx, -maxSpeed, maxSpeed);
+    this.vy = constrain(this.vy, -maxSpeed, maxSpeed);
+
+    // Apply velocity
+    this.x += this.vx;
+    this.y += this.vy;
+}
 
 /*------------------------------------------------------------------------------------------------
                      ||Node Visuals||
