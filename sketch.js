@@ -7,7 +7,7 @@ let maxPConnections = 1;
 let maxSConnections = 1;
 let selectedBand = null; 
 
-let minShows = 6; // Alters number of shows a band needs to play to show up on the map
+let minShows = 5; // Alters number of shows a band needs to play to show up on the map
 let minPairings = 3; // atlers the number of connections a band needs to show up on map
 
 //Set time for magnetism to run. Stop after settleFrames

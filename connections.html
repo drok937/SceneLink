@@ -93,21 +93,52 @@ function parseAndGenerate() {
   });
 
   // 🔁 Generate secondary connections
-  const secondaries = {};
-  for (const artist in pairings) {
-    secondaries[artist] = {};
-    for (const partner in pairings[artist]) {
-      for (const maybeSecondary in pairings[partner]) {
-        if (
-          maybeSecondary !== artist &&
-          !pairings[artist][maybeSecondary]
-        ) {
-          secondaries[artist][maybeSecondary] =
-            (secondaries[artist][maybeSecondary] || 0) + 1;
-        }
+  // const secondaries = {};
+  // for (const artist in pairings) {
+  //   secondaries[artist] = {};
+  //   for (const partner in pairings[artist]) {
+  //     for (const maybeSecondary in pairings[partner]) {
+  //       if (
+  //         maybeSecondary !== artist &&
+  //         !pairings[artist][maybeSecondary]
+  //       ) {
+  //         secondaries[artist][maybeSecondary] =
+  //           (secondaries[artist][maybeSecondary] || 0) + 1;
+  //       }
+  //     }
+  //   }
+  // }
+
+  // 🔁 Generate secondary connections based on all shows a band has ever played
+const bandsPlayedWith = {};
+for (const show of uniqueShows) {
+  for (const band of show.bands) {
+    bandsPlayedWith[band] = bandsPlayedWith[band] || new Set();
+    for (const other of show.bands) {
+      if (other !== band) bandsPlayedWith[band].add(other);
+    }
+  }
+}
+
+// Now, for each band, look at all "friends of friends" who are not direct connections
+const secondaries = {};
+for (const band in bandsPlayedWith) {
+  secondaries[band] = {};
+  // All bands this band has played with directly
+  const direct = bandsPlayedWith[band];
+  for (const friend of direct) {
+    // All bands this friend has played with
+    const friendsFriends = bandsPlayedWith[friend] || new Set();
+    for (const maybeSecondary of friendsFriends) {
+      if (
+        maybeSecondary !== band &&
+        !direct.has(maybeSecondary)
+      ) {
+        secondaries[band][maybeSecondary] = (secondaries[band][maybeSecondary] || 0) + 1;
       }
     }
   }
+}
 
   // 🔍 Find max primary and secondary connection values
   let maxPConnections = 0;
