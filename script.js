@@ -13,7 +13,6 @@ async function populate() {
         const response = await fetch('data.json');
         const data = await response.json();  // ✅ data is local here
 
-        // ✅ Access nested structures correctly
         allPairings = data.directConnections;
         secondaryConnections = data.secondaryConnections;
 
